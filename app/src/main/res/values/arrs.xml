@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="cityArr">
+        <item>ראשון לציון</item>
+        <item>ירושלים</item>
+        <item>תל אביב</item>
+        <item>רמת גן</item>
+        <item>בת ים</item>
+        <item>חולון</item>
+        <item>חיפה</item>
+        <item>אילת</item>
+        <item>פתח תקווה</item>
+        <item>באר שבע</item>
+
+    </string-array>
+    <string-array name="typeOfEventArr">
+        <item>מסעדה</item>
+        <item>מונית</item>
+        <item>דלק</item>
+        <item>שכר דירה</item>
+        <item>סופר</item>
+        <item>אחר</item>
+
+    </string-array>
+
+    <string-array name="currencyArr">
+        <item>INS</item> <!-- ISRAELI SHEKEL -->
+        <item>USD</item> <!-- US Dollar -->
+        <item>EUR</item> <!-- Euro -->
+        <item>GBP</item> <!-- British Pound -->
+        <item>INR</item> <!-- Indian Rupee -->
+        <item>AUD</item> <!-- Australian Dollar -->
+        <item>CAD</item> <!-- Canadian Dollar -->
+        <item>JPY</item> <!-- Japanese Yen -->
+        <item>CNY</item> <!-- Chinese Yuan -->
+        <item>MXN</item> <!-- Mexican Peso -->
+        <item>BRL</item> <!-- Brazilian Real -->
+        <item>RUB</item> <!-- Russian Ruble -->
+        <item>HKD</item> <!-- Hong Kong Dollar -->
+        <item>TRY</item> <!-- Turkish Lira -->
+        <item>ARS</item> <!-- Argentine Peso -->
+        <item>EGP</item> <!-- Egyptian Pound -->
+        <item>VND</item> <!-- Vietnamese Dong -->
+        <item>PKR</item> <!-- Pakistani Rupee -->
+    </string-array>
+
+</resources>

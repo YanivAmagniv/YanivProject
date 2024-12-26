@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "849254183499",
+    "firebase_url": "https://yanivapp22-default-rtdb.firebaseio.com",
+    "project_id": "yanivapp22",
+    "storage_bucket": "yanivapp22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849254183499:android:878f1f5b104f1b467c53ce",
+        "android_client_info": {
+          "package_name": "com.example.yanivproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYHas6LhuqasUoOWsOFrudgmdstLXL5xE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849254183499:android:6621ab198c0def8e7c53ce",
+        "android_client_info": {
+          "package_name": "com.yaniv.yanivapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYHas6LhuqasUoOWsOFrudgmdstLXL5xE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
