@@ -1,6 +1,5 @@
-package com.example.yanivproject.model;
+package com.example.yanivproject.models;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class MainSplit {

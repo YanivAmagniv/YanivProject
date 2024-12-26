@@ -1,4 +1,4 @@
-package com.example.yanivproject.model;
+package com.example.yanivproject.models;
 
 public class User {
 

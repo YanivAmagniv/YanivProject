@@ -13,13 +13,13 @@
         android:theme="@style/Theme.YanivProject"
         tools:targetApi="31">
         <activity
-            android:name=".Register"
+            android:name=".screens.Register"
             android:exported="false" />
         <activity
-            android:name=".Login"
+            android:name=".screens.Login"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".screens.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

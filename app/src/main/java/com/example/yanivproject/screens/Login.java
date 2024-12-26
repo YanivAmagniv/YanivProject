@@ -1,4 +1,4 @@
-package com.example.yanivproject;
+package com.example.yanivproject.screens;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,6 +18,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.yanivproject.R;
+import com.example.yanivproject.services.AuthenticationService;
+import com.example.yanivproject.services.DatabaseService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -31,9 +33,10 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Ad
     EditText etEmail, etPassword;
     Button btnLog;
     String email, pass;
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    private FirebaseAuth mAuth;
+
+    AuthenticationService authenticationService;
+    DatabaseService databaseService;
+
 
     public static final String MyPREFERENCES="MyPrefs";
 
@@ -51,12 +54,14 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Ad
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        initViews();
-        mAuth = FirebaseAuth.getInstance();
 
-        database=FirebaseDatabase.getInstance();
-        myRef = database.getReference("Users");
-        database = FirebaseDatabase.getInstance();
+        /// get the instance of the authentication service
+        authenticationService = AuthenticationService.getInstance();
+        /// get the instance of the database service
+        databaseService = DatabaseService.getInstance();
+
+        initViews();
+
 
 
 
@@ -85,32 +90,26 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Ad
         email = etEmail.getText().toString();
         pass = etPassword.getText().toString();
 
+        authenticationService.signIn(email, pass, new AuthenticationService.AuthCallback<String>() {
+            @Override
+            public void onCompleted(String id) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d("TAG", "signInWithEmail:success");
 
-        mAuth.signInWithEmailAndPassword(email, pass)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("TAG", "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                Intent go = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(go);
+            }
 
-
-
-                            Intent go = new Intent(getApplicationContext(), MainActivity.class);
-                            startActivity(go);
-                        } else {
-
-//                                // If sign in fails, display a message to the user.
-                            Log.w("TAG", "signInWithEmail:failure", task.getException());
-                            Toast.makeText(getApplicationContext(), "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
+            @Override
+            public void onFailed(Exception e) {
+                // If sign in fails, display a message to the user.
+                Log.w("TAG", "signInWithEmail:failure", e);
+                Toast.makeText(getApplicationContext(), "Authentication failed.",
+                        Toast.LENGTH_SHORT).show();
 //                                updateUI(null);
-                    }
+            }
+        });
 
-
-                    }
-                });
     }
 
 
