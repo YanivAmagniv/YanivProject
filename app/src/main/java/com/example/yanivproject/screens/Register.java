@@ -23,6 +23,8 @@ import androidx.annotation.NonNull;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.User;
+import com.example.yanivproject.services.AuthenticationService;
+import com.example.yanivproject.services.DatabaseService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -41,9 +43,8 @@ public class Register extends AppCompatActivity implements AdapterView.OnItemSel
     Spinner spCity;
 
 
-    private FirebaseAuth mAuth;
-    private FirebaseDatabase database;
-    private DatabaseReference myRef;
+    private AuthenticationService authenticationService;
+    private DatabaseService databaseService;
     public static final String MyPREFERENCES = "MyPrefs" ;
     SharedPreferences sharedpreferences;
 
@@ -62,11 +63,11 @@ public class Register extends AppCompatActivity implements AdapterView.OnItemSel
         init_views();
 
 
-        // Write a message to the database
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("Users");
+        /// get the instance of the authentication service
+        authenticationService = AuthenticationService.getInstance();
+        /// get the instance of the database service
+        databaseService = DatabaseService.getInstance();
 
-        mAuth = FirebaseAuth.getInstance();
 
     }
 
@@ -118,41 +119,48 @@ public class Register extends AppCompatActivity implements AdapterView.OnItemSel
             isValid = false;
         }
 
-        if (isValid==true){
+        if (isValid==true) {
 
-            mAuth.createUserWithEmailAndPassword(email, pass)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            authenticationService.signUp(email, pass, new AuthenticationService.AuthCallback<String>() {
+                @Override
+                public void onCompleted(String uid) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d("TAG", "createUserWithEmail:success");
+                    User newUser=new User(uid, fName, lName,phone, email,pass,city);
+                    databaseService.createNewUser(newUser, new DatabaseService.DatabaseCallback<Void>() {
                         @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                // Sign in success, update UI with the signed-in user's information
-                                Log.d("TAG", "createUserWithEmail:success");
-                                FirebaseUser fireuser = mAuth.getCurrentUser();
-                                User newUser=new User(fireuser.getUid(), fName, lName,phone, email,pass,city);
-                                myRef.child(fireuser.getUid()).setValue(newUser);
-                                SharedPreferences.Editor editor = sharedpreferences.edit();
+                        public void onCompleted(Void object) {
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
 
-                                editor.putString("email", email);
-                                editor.putString("password", pass);
+                            editor.putString("email", email);
+                            editor.putString("password", pass);
 
-                                editor.commit();
-                                Intent goLog=new Intent(Register.this, MainActivity.class);
-                                startActivity(goLog);
+                            editor.commit();
+                            Intent goLog=new Intent(Register.this, MainActivity.class);
+                            startActivity(goLog);
+                        }
 
-
-                            } else {
-                                // If sign in fails, display a message to the user.
-                                Log.w("TAG", "createUserWithEmail:failure", task.getException());
-                                Toast.makeText(Register.this, "Authentication failed.",
-                                        Toast.LENGTH_SHORT).show();
-
-                            }
-
-                            // ...
+                        @Override
+                        public void onFailed(Exception e) {
+                            // If sign in fails, display a message to the user.
+                            Log.w("TAG", "createUserWithEmail:failure", e);
+                            Toast.makeText(Register.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
-        }
 
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    // If sign in fails, display a message to the user.
+                    Log.w("TAG", "createUserWithEmail:failure", e);
+                    Toast.makeText(Register.this, "Authentication failed.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        }
 
     }
 
