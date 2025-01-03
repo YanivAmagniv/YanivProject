@@ -11,10 +11,10 @@
         android:layout_height="0dp"
         android:layout_marginStart="14dp"
         android:layout_marginTop="54dp"
-        android:layout_marginBottom="25dp"
+        android:layout_marginBottom="308dp"
         android:text="קבוצה חדשה"
         android:textSize="50dp"
-        app:layout_constraintBottom_toTopOf="@+id/etGroupName"
+        app:layout_constraintBottom_toTopOf="@+id/spEventType"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -55,14 +55,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etDescription" />
 
+    <Spinner
+        android:id="@+id/spEventType"
+        android:layout_width="230dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="435dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/spCurrency"
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
+
     <Button
         android:id="@+id/btnCreateGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="141dp"
         android:layout_marginBottom="240dp"
+        android:entries="@array/typeOfEventArr"
         android:text="צור קבוצה"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/spCurrency" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,6 +13,9 @@
         android:theme="@style/Theme.YanivProject"
         tools:targetApi="31">
         <activity
+            android:name=".screens.AddNewEvent"
+            android:exported="false" />
+        <activity
             android:name=".screens.Register"
             android:exported="false" />
         <activity
@@ -28,10 +31,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".screens.Groups"
-            android:exported="false">
-
-        </activity>
+            android:name=".screens.Activity_Groups"
+            android:exported="false"></activity>
     </application>
 
 </manifest>
