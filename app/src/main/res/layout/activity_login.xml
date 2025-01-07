@@ -29,6 +29,7 @@
         android:layout_marginTop="68dp"
         android:background="#0F1010"
         android:text="התחבר"
+        android:onClick="go_groups"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
