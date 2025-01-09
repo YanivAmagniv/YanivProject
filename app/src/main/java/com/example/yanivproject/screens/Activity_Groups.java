@@ -26,4 +26,5 @@ public class Activity_Groups extends AppCompatActivity {
         Intent go = new Intent(getApplicationContext(), AddNewEvent.class);
         startActivity(go);
     }
+
 }

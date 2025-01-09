@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 
+import com.example.yanivproject.models.MainSplit;
 import com.example.yanivproject.models.User;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -136,14 +137,8 @@ public class DatabaseService {
     /// @see DatabaseCallback
     /// @see User
     public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
-        writeData("users/" + user.getId(), user, callback);
+        writeData("Users/" + user.getId(), user, callback);
     }
-
-
-
-
-
-
 
 
     /// get a user from the database
@@ -155,11 +150,15 @@ public class DatabaseService {
     /// @see DatabaseCallback
     /// @see User
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
-        getData("users/" + uid, User.class, callback);
+        getData("Users/" + uid, User.class, callback);
     }
 
-
-
+    public void createNewMainSplit(@NotNull final MainSplit mainSplit, @Nullable final DatabaseCallback<Void> callback) {
+        writeData("/mainSplit" + mainSplit.getId(), mainSplit, callback);
+    }
+    public void getSplit(@NotNull final String uid, @NotNull final DatabaseCallback<MainSplit> callback) {
+        getData("/mainsplit" + uid, MainSplit.class, callback);
+    }
 
 
 
@@ -168,19 +167,8 @@ public class DatabaseService {
     /// @return a new id for the food
     /// @see #generateNewId(String)
     /// @see Food
-    public String generateFoodId() {
-        return generateNewId("foods");
+    public String generateMainSplitId() {
+        return generateNewId("mainsplit");
     }
-
-    /// generate a new id for a new cart in the database
-    /// @return a new id for the cart
-    /// @see #generateNewId(String)
-    /// @see Cart
-    public String generateCartId() {
-        return generateNewId("carts");
-    }
-
-
-
 
 }
