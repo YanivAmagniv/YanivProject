@@ -90,7 +90,7 @@ public class DatabaseService {
     /// @return a DatabaseReference object to read the data from
     /// @see DatabaseReference
 
-    private DatabaseReference readData(@NotNull final String path) {
+    public DatabaseReference readData(@NotNull final String path) {
         return databaseReference.child(path);
     }
 
@@ -169,6 +169,34 @@ public class DatabaseService {
     /// @see Food
     public String generateMainSplitId() {
         return generateNewId("mainsplit");
+    }
+
+
+    /// get all the users from the database
+    /// @param callback the callback to call when the operation is completed
+    ///              the callback will receive a list of food objects
+    ///            if the operation fails, the callback will receive an exception
+    /// @return void
+    /// @see DatabaseCallback
+    /// @see List
+    /// @see Food
+    /// @see #getData(String, Class, DatabaseCallback)
+    public void getUsers(@NotNull final DatabaseCallback<List<User>> callback) {
+        readData("Users").get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e(TAG, "Error getting data", task.getException());
+                callback.onFailed(task.getException());
+                return;
+            }
+            List<User> users = new ArrayList<>();
+            task.getResult().getChildren().forEach(dataSnapshot -> {
+                User user = dataSnapshot.getValue(User.class);
+                Log.d(TAG, "Got user: " + user);
+                users.add(user);
+            });
+
+            callback.onCompleted(users);
+        });
     }
 
 }

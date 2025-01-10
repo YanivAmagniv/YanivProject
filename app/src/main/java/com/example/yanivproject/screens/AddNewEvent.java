@@ -4,9 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CalendarView;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -21,11 +25,19 @@ import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
 import com.example.yanivproject.services.AuthenticationService;
 import com.example.yanivproject.services.DatabaseService;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
 
 public class AddNewEvent extends AppCompatActivity implements View.OnClickListener {
     Spinner spCurrency, spEventType;
+
+    CalendarView cvEventDate;
+    TextView dateTextView;
+    String stDate;
 
     EditText etGroupName, etDescription;
     String stGroupName, stDescription, stSPcurrency, stSPeventType;
@@ -38,6 +50,11 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
     User user;
 
+    ListView lvMembers;
+    ArrayList<User> users=new ArrayList<>();
+    ArrayAdapter<User> adapter;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,15 +62,47 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_newgroup);
         databaseService = DatabaseService.getInstance();
-        btnCreateGroup.setOnClickListener(this);
         authenticationService = AuthenticationService.getInstance();
         uid=authenticationService.getCurrentUserId();
+
+        initViews();
+
+
+        users=new ArrayList<>();
+
+        adapter = new ArrayAdapter<User>(AddNewEvent.this, android.R.layout.simple_list_item_1,users);
+        lvMembers.setAdapter(adapter);
+
+        databaseService.getUsers(new DatabaseService.DatabaseCallback<List<User>>() {
+            @Override
+            public void onCompleted(List<User> object) {
+                Log.d("TAG", "onCompleted: " + object);
+                users.clear();
+                users.addAll(object);
+                /// notify the adapter that the data has changed
+                /// this specifies that the data has changed
+                /// and the adapter should update the view
+                /// @see FoodSpinnerAdapter#notifyDataSetChanged()
+                 // foodSpinnerAdapter.notifyDataSetChanged();
+
+               adapter.notifyDataSetChanged();
+
+            }
+
+
+
+
+            @Override
+            public void onFailed(Exception e) {
+                Log.e("TAG", "onFailed: ", e);
+            }
+        });
 
         databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User u) {
                 user = u;
-                initViews();
+
             }
 
             @Override
@@ -61,6 +110,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
             }
         });
+
 
     }
 
@@ -70,6 +120,22 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         spEventType = findViewById(R.id.spEventType);
         etDescription = findViewById(R.id.etDescription);
         etGroupName = findViewById(R.id.etGroupName);
+
+        lvMembers=findViewById(R.id.lvMembersSpit);
+
+        btnCreateGroup.setOnClickListener(this);
+
+        cvEventDate = findViewById(R.id.cvEventDate);
+        dateTextView = findViewById(R.id.dateTextView);  // A TextView to show the date
+
+        // Set a listener to get the date when it's selected
+        cvEventDate.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            // Convert the selected date to a string
+            stDate = year + "-" + (month + 1) + "-" + dayOfMonth;  // Format: yyyy-MM-dd
+
+            // Display the selected date as a string
+            dateTextView.setText(stDate);
+        });
 
     }
 
@@ -101,9 +167,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         String id = databaseService.generateMainSplitId();
 
 
-// public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList< UserPay > users, int dividedBy, double totalAmount) {
+// public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
 
-        MainSplit mainSplit = new MainSplit(id, status, eventDate, stDescription, stSPcurrency,stSPeventType, admin, users, dividedBy, totalAmount);
+        MainSplit mainSplit = new MainSplit(id, "not paid", stDate, stDescription,stSPeventType, user, users, 5, 1000.0);
 
         databaseService.createNewMainSplit(mainSplit, new DatabaseService.DatabaseCallback<Void>() {
             @Override

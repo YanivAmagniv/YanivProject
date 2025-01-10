@@ -9,12 +9,12 @@ public class MainSplit {
 
     String  type;  //taxi,gas,resturant,market,rent,other;
     User admin;
-    ArrayList <UserPay> users;
+    ArrayList <User> users;
     int dividedBy;
     double totalAmount;
 
 
-    public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
+    public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<User> users, int dividedBy, double totalAmount) {
         this.id = id;
         this.status = status;
         this.eventDate = eventDate;
@@ -69,11 +69,11 @@ public class MainSplit {
         this.admin = admin;
     }
 
-    public ArrayList<UserPay> getUsers() {
+    public ArrayList<User> getUsers() {
         return users;
     }
 
-    public void setUsers(ArrayList<UserPay> users) {
+    public void setUsers(ArrayList<User> users) {
         this.users = users;
     }
 
