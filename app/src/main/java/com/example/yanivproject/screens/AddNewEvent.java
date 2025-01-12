@@ -57,6 +57,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     ArrayList<User> users=new ArrayList<>();
     UserNamAdapter<User> adapter;
 
+    ArrayList<User> usersSelected=new ArrayList<>();
 
 
     @Override
@@ -193,7 +194,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+        usersSelected.add((User) parent.getItemAtPosition(position));
     }
 
     /// validate the input
