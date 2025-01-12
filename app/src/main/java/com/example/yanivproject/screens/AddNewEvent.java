@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CalendarView;
@@ -20,6 +21,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.yanivproject.R;
+import com.example.yanivproject.adapters.UserAdapter;
+import com.example.yanivproject.adapters.UserNamAdapter;
 import com.example.yanivproject.models.MainSplit;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
@@ -32,7 +35,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-public class AddNewEvent extends AppCompatActivity implements View.OnClickListener {
+public class AddNewEvent extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
     Spinner spCurrency, spEventType;
 
     CalendarView cvEventDate;
@@ -52,7 +55,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
     ListView lvMembers;
     ArrayList<User> users=new ArrayList<>();
-    ArrayAdapter<User> adapter;
+    UserNamAdapter<User> adapter;
 
 
 
@@ -70,8 +73,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
         users=new ArrayList<>();
 
-        adapter = new ArrayAdapter<User>(AddNewEvent.this, android.R.layout.simple_list_item_1,users);
+        adapter = new UserNamAdapter<>(AddNewEvent.this, 0,0,users);
         lvMembers.setAdapter(adapter);
+        lvMembers.setOnItemClickListener(this);
 
         databaseService.getUsers(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
@@ -185,6 +189,11 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
             }
         });
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
     }
 
     /// validate the input

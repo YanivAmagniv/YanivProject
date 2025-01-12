@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <TextView
+        android:id="@+id/tvfname"
+        android:layout_width="14dp"
+        android:layout_height="65dp"
+        android:layout_weight="1"
+        android:textColor="#F6CEF5"
+        android:background="#BDBDBD"
+        android:text="TextView"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/tvlname"
+        android:layout_width="20dp"
+        android:layout_height="58dp"
+        android:textColor="#A9F5F2"
+        android:layout_weight="1"
+        android:textSize="20dp"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tvphone"
+        android:layout_width="30dp"
+        android:layout_height="65dp"
+        android:layout_weight="1"
+        android:background="#BDBDBD"
+        android:text="TextView"
+        android:textColor="#F6CEF5"
+        android:textSize="20dp" />
+
+
+</LinearLayout>
