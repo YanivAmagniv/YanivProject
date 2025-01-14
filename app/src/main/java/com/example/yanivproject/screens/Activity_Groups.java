@@ -26,5 +26,8 @@ public class Activity_Groups extends AppCompatActivity {
         Intent go = new Intent(getApplicationContext(), AddNewEvent.class);
         startActivity(go);
     }
-
+    public void go_ExistentGroup(View v) {
+        Intent go = new Intent(getApplicationContext(), ExistentGroup.class);
+        startActivity(go);
+    }
 }
