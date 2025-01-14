@@ -12,9 +12,18 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.yanivproject.R;
 import com.example.yanivproject.services.DatabaseService;
 
+import com.example.yanivproject.models.Group;  //Import the Group model
+import com.example.yanivproject.models.UserPay;  // If you have this class for user payments
+import com.example.yanivproject.models.User;  // If you have this class for users
+
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class ExistentGroup extends AppCompatActivity {
     DatabaseService databaseService;
     ListView lvMyGroups;
+    List<Group> groupList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,6 +37,10 @@ public class ExistentGroup extends AppCompatActivity {
 
         lvMyGroups=findViewById(R.id.lstMyGroups);
         databaseService=DatabaseService.getInstance();
+        // Set up the adapter with the list of groups
+        GroupAdapter adapter = new GroupAdapter(this, groupList);
+        lstMyGroups.setAdapter(adapter);
+
 
     }
 }
