@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 
+import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.MainSplit;
 import com.example.yanivproject.models.User;
 import com.google.firebase.database.DatabaseReference;
@@ -171,7 +172,33 @@ public class DatabaseService {
         return generateNewId("mainsplit");
     }
 
+    /// get all the groups from the database
+/// @param callback the callback to call when the operation is completed
+///              the callback will receive a list of group objects
+///            if the operation fails, the callback will receive an exception
+/// @return void
+/// @see DatabaseCallback
+/// @see List
+/// @see Group
+    public void getGroups(@NotNull final DatabaseCallback<List<Group>> callback) {
+        readData("groups").get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e(TAG, "Error getting groups data", task.getException());
+                callback.onFailed(task.getException());
+                return;
+            }
+            List<Group> groups = new ArrayList<>();
+            task.getResult().getChildren().forEach(dataSnapshot -> {
+                Group group = dataSnapshot.getValue(Group.class);
+                if (group != null) {
+                    Log.d(TAG, "Got group: " + group);
+                    groups.add(group);
+                }
+            });
 
+            callback.onCompleted(groups);
+        });
+    }
     /// get all the users from the database
     /// @param callback the callback to call when the operation is completed
     ///              the callback will receive a list of food objects

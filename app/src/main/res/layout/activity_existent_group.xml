@@ -11,26 +11,24 @@
         android:id="@+id/textView4"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="61dp"
+        android:layout_marginStart="60dp"
         android:layout_marginTop="31dp"
-        android:layout_marginEnd="61dp"
-        android:layout_marginBottom="52dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginBottom="39dp"
         android:text="הקבוצות שלי"
         android:textSize="40dp"
-        app:layout_constraintBottom_toTopOf="@+id/lstMyGroups"
+        app:layout_constraintBottom_toTopOf="@+id/rvMyGroups"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ListView
-        android:id="@+id/lstMyGroups"
-        android:layout_width="398dp"
-        android:layout_height="586dp"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="6dp"
-        android:layout_marginBottom="178dp"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMyGroups"
+        android:layout_width="364dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="11dp"
+        android:layout_marginBottom="318dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
 </androidx.constraintlayout.widget.ConstraintLayout>
