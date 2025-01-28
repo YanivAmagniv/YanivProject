@@ -36,14 +36,14 @@ import java.util.Collection;
 import java.util.List;
 
 public class AddNewEvent extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
-    Spinner spCurrency, spEventType;
+    Spinner spCurrency, spEventType,spDividedBy;
 
     CalendarView cvEventDate;
     TextView dateTextView;
     String stDate;
 
     EditText etGroupName, etDescription;
-    String stGroupName, stDescription, stSPcurrency, stSPeventType;
+    String stGroupName, stDescription, stSPcurrency, stSPeventType,stspDividedBy;
 
     Button btnCreateGroup;
 
@@ -121,6 +121,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
     private void initViews() {
         btnCreateGroup = findViewById(R.id.btnCreateGroup);
+
+        //spDividedBy= findViewById(R.id.spDividedBy);
+
         spCurrency = findViewById(R.id.spCurrency);
         spEventType = findViewById(R.id.spEventType);
         etDescription = findViewById(R.id.etDescription);
@@ -157,6 +160,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     private void addMainSplitToDatabase() {
         /// get the values from the input fields
         stSPcurrency = spCurrency.getSelectedItem().toString();
+
+       // stspDividedBy= spDividedBy.getSelectedItem().toString();
+
         stSPeventType = spEventType.getSelectedItem().toString();
         stDescription = etDescription.getText().toString();
         stGroupName = etGroupName.getText() + "";

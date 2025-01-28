@@ -5,30 +5,36 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="16dp"
     tools:context=".screens.ExistentGroup">
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="60dp"
-        android:layout_marginTop="31dp"
-        android:layout_marginEnd="60dp"
-        android:layout_marginBottom="39dp"
+        android:layout_height="wrap_content"
         android:text="הקבוצות שלי"
-        android:textSize="40dp"
+        android:textSize="40sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+
         app:layout_constraintBottom_toTopOf="@+id/rvMyGroups"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="31dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginBottom="39dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMyGroups"
-        android:layout_width="364dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="11dp"
-        android:layout_marginBottom="318dp"
+        android:layout_width="300dp"
+        android:layout_height="700dp"
+        android:layout_marginStart="56dp"
+        android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
