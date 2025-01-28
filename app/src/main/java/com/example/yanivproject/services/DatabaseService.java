@@ -155,10 +155,10 @@ public class DatabaseService {
     }
 
     public void createNewMainSplit(@NotNull final MainSplit mainSplit, @Nullable final DatabaseCallback<Void> callback) {
-        writeData("/mainSplit" + mainSplit.getId(), mainSplit, callback);
+        writeData("groups/" + mainSplit.getId(), mainSplit, callback);
     }
     public void getSplit(@NotNull final String uid, @NotNull final DatabaseCallback<MainSplit> callback) {
-        getData("/mainsplit" + uid, MainSplit.class, callback);
+        getData("groups/" + uid, MainSplit.class, callback);
     }
 
 
@@ -169,7 +169,7 @@ public class DatabaseService {
     /// @see #generateNewId(String)
     /// @see Food
     public String generateMainSplitId() {
-        return generateNewId("mainsplit");
+        return generateNewId("groups");
     }
 
     /// get all the groups from the database

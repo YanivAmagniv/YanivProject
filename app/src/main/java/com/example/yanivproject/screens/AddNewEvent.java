@@ -58,6 +58,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     UserNamAdapter<User> adapter;
 
     ArrayList<User> usersSelected=new ArrayList<>();
+    EditText etMembers;
+    String members="";
 
 
     @Override
@@ -124,12 +126,14 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
         //spDividedBy= findViewById(R.id.spDividedBy);
 
+        etMembers=findViewById(R.id.etEventMembers);
+
         spCurrency = findViewById(R.id.spCurrency);
         spEventType = findViewById(R.id.spEventType);
         etDescription = findViewById(R.id.etDescription);
         etGroupName = findViewById(R.id.etGroupName);
 
-        lvMembers=findViewById(R.id.lvMembersSpit);
+        lvMembers=findViewById(R.id.lvallMembers);
 
         btnCreateGroup.setOnClickListener(this);
 
@@ -167,6 +171,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         stDescription = etDescription.getText().toString();
         stGroupName = etGroupName.getText() + "";
 
+
         /// validate the input
         /// stop if the input is not valid
 //        if (!isValid(name, priceText, imageBase64)) return;
@@ -180,7 +185,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
 // public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
 
-        MainSplit mainSplit = new MainSplit(id, "not paid", stDate, stDescription,stSPeventType, user, users, 5, 1000.0);
+        MainSplit mainSplit = new MainSplit(id, "not paid", stDate, stDescription,stSPeventType, user, usersSelected, 5, 1000.0);
 
         databaseService.createNewMainSplit(mainSplit, new DatabaseService.DatabaseCallback<Void>() {
             @Override
@@ -201,6 +206,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         usersSelected.add((User) parent.getItemAtPosition(position));
+        etMembers.setText(usersSelected.toString());
     }
 
     /// validate the input

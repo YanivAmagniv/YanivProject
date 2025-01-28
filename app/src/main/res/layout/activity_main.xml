@@ -13,49 +13,66 @@
     <ImageView
         android:id="@+id/myImageView"
         android:layout_width="344dp"
-        android:layout_height="305dp"
+        android:layout_height="0dp"
         android:layout_gravity="center"
 
+        android:layout_marginTop="42dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="79dp"
         android:contentDescription="Logo"
         android:scaleType="fitCenter"
         android:src="@drawable/smartsplit"
-        tools:layout_editor_absoluteX="52dp"
-        tools:layout_editor_absoluteY="26dp" />
+        app:layout_constraintBottom_toTopOf="@+id/btnLogin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btnLogin"
-        android:layout_width="261dp"
-        android:layout_height="76dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="41dp"
+        android:layout_marginEnd="41dp"
+        android:layout_marginBottom="61dp"
         android:background="@color/button"
         android:elevation="4dp"
         android:text="התחבר"
         android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="94dp"
-        tools:layout_editor_absoluteY="410dp" />
+        app:layout_constraintBottom_toTopOf="@+id/btnRegister"
+        app:layout_constraintEnd_toEndOf="@+id/myImageView"
+        app:layout_constraintStart_toStartOf="@+id/myImageView"
+        app:layout_constraintTop_toBottomOf="@+id/myImageView" />
 
     <Button
         android:id="@+id/btnRegister"
-        android:layout_width="257dp"
-        android:layout_height="78dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginBottom="248dp"
         android:background="@color/button"
         android:elevation="4dp"
         android:text="הרשם"
         android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="96dp"
-        tools:layout_editor_absoluteY="547dp" />
+        app:layout_constraintBottom_toTopOf="@+id/btnAbout"
+        app:layout_constraintEnd_toEndOf="@+id/btnLogin"
+        app:layout_constraintStart_toStartOf="@+id/btnLogin"
+        app:layout_constraintTop_toBottomOf="@+id/btnLogin" />
 
     <Button
         android:id="@+id/btnAbout"
         android:layout_width="235dp"
-        android:layout_height="80dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="85dp"
+        android:layout_marginBottom="28dp"
         android:background="@color/button"
         android:elevation="4dp"
         android:text="אודות"
         android:textColor="@color/white"
         android:textSize="16sp"
-        tools:layout_editor_absoluteX="112dp"
-        tools:layout_editor_absoluteY="873dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRegister" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
