@@ -36,14 +36,14 @@ import java.util.Collection;
 import java.util.List;
 
 public class AddNewEvent extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
-    Spinner spCurrency, spEventType,spDividedBy;
+    Spinner spCurrency, spEventType;
 
     CalendarView cvEventDate;
     TextView dateTextView;
     String stDate;
 
     EditText etGroupName, etDescription;
-    String stGroupName, stDescription, stSPcurrency, stSPeventType,stspDividedBy;
+    String stGroupName, stDescription, stSPcurrency, stSPeventType;
 
     Button btnCreateGroup;
 
@@ -53,51 +53,59 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
     User user;
 
-    ListView lvMembers;
+    ListView lvMembers,lvSelectedMembers;
+
+
     ArrayList<User> users=new ArrayList<>();
     UserNamAdapter<User> adapter;
+    private UserNamAdapter<User> selectedAdapter;
+
 
     ArrayList<User> usersSelected=new ArrayList<>();
-    EditText etMembers;
+
     String members="";
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_newgroup);
+
         databaseService = DatabaseService.getInstance();
         authenticationService = AuthenticationService.getInstance();
-        uid=authenticationService.getCurrentUserId();
+        uid = authenticationService.getCurrentUserId();
 
         initViews();
 
-
-        users=new ArrayList<>();
-
-        adapter = new UserNamAdapter<>(AddNewEvent.this, 0,0,users);
+        users = new ArrayList<>();
+        adapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, users);
         lvMembers.setAdapter(adapter);
         lvMembers.setOnItemClickListener(this);
+
+        selectedAdapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, usersSelected);
+        lvSelectedMembers.setAdapter(selectedAdapter);
+
+        // Click listener for removing users from lvSelectedMembers
+        lvSelectedMembers.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                User selectedUser = usersSelected.get(position);  // Get the clicked user
+
+                usersSelected.remove(selectedUser);  // Remove from selected list
+
+                selectedAdapter.notifyDataSetChanged();  // Refresh the selected list
+            }
+        });
 
         databaseService.getUsers(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
             public void onCompleted(List<User> object) {
-                Log.d("TAG", "onCompleted: " + object);
                 users.clear();
                 users.addAll(object);
-                /// notify the adapter that the data has changed
-                /// this specifies that the data has changed
-                /// and the adapter should update the view
-                /// @see FoodSpinnerAdapter#notifyDataSetChanged()
-                 // foodSpinnerAdapter.notifyDataSetChanged();
-
-               adapter.notifyDataSetChanged();
-
+                adapter.notifyDataSetChanged();
             }
-
-
-
 
             @Override
             public void onFailed(Exception e) {
@@ -109,12 +117,10 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
             @Override
             public void onCompleted(User u) {
                 user = u;
-
             }
 
             @Override
             public void onFailed(Exception e) {
-
             }
         });
 
@@ -126,7 +132,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
         //spDividedBy= findViewById(R.id.spDividedBy);
 
-        etMembers=findViewById(R.id.etEventMembers);
+
+        lvSelectedMembers = findViewById(R.id.lvSelectedMembers);
+
 
         spCurrency = findViewById(R.id.spCurrency);
         spEventType = findViewById(R.id.spEventType);
@@ -134,6 +142,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         etGroupName = findViewById(R.id.etGroupName);
 
         lvMembers=findViewById(R.id.lvallMembers);
+
+
+
 
         btnCreateGroup.setOnClickListener(this);
 
@@ -205,8 +216,13 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        usersSelected.add((User) parent.getItemAtPosition(position));
-        etMembers.setText(usersSelected.toString());
+
+        User selectedUser = (User) parent.getItemAtPosition(position);
+
+        if (!usersSelected.contains(selectedUser)) {  // Prevent duplicate selections
+            usersSelected.add(selectedUser);
+            selectedAdapter.notifyDataSetChanged(); // Refresh selected members list
+        }
     }
 
     /// validate the input

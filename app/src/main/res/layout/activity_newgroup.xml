@@ -7,16 +7,15 @@
 
     <TextView
         android:id="@+id/textView3"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="52dp"
-        android:layout_marginBottom="212dp"
+        android:layout_width="341dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="31dp"
+        android:layout_marginBottom="386dp"
         android:text="קבוצה חדשה"
         android:textSize="50dp"
-        app:layout_constraintBottom_toTopOf="@+id/spCurrency"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/spEventType"
+        app:layout_constraintEnd_toEndOf="@+id/cvEventDate"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,129 +23,141 @@
         android:id="@+id/etGroupName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="25dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginStart="37dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="52dp"
         android:ems="10"
         android:inputType="text"
         android:text="שם הקבוצה"
-        app:layout_constraintBottom_toTopOf="@+id/spEventType"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/spCurrency"
-        app:layout_constraintTop_toBottomOf="@+id/dateTextView" />
+        app:layout_constraintEnd_toStartOf="@+id/dateTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cvEventDate" />
 
     <EditText
         android:id="@+id/etDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="42dp"
+        android:layout_marginTop="21dp"
         android:ems="10"
         android:inputType="text"
         android:text="תיאור"
-        app:layout_constraintBottom_toTopOf="@+id/btnCreateGroup"
         app:layout_constraintStart_toStartOf="@+id/btnCreateGroup"
-        app:layout_constraintTop_toBottomOf="@+id/etEventMembers" />
+        app:layout_constraintTop_toBottomOf="@+id/lvallMembers" />
+
 
     <Spinner
         android:id="@+id/spCurrency"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="37dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginBottom="27dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="85dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginEnd="44dp"
         android:entries="@array/currencyArr"
-        app:layout_constraintBottom_toTopOf="@+id/spDividedBy"
-        app:layout_constraintEnd_toStartOf="@+id/etGroupName"
+        app:layout_constraintEnd_toStartOf="@+id/spEventType"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3" />
+        app:layout_constraintTop_toBottomOf="@+id/etGroupName" />
 
     <Spinner
         android:id="@+id/spEventType"
-        android:layout_width="182dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="11dp"
-        android:layout_marginBottom="27dp"
+        android:layout_width="146dp"
+        android:layout_height="31dp"
+        android:layout_marginTop="39dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="505dp"
         android:entries="@array/typeOfEventArr"
-        app:layout_constraintBottom_toTopOf="@+id/lvallMembers"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/spDividedBy"
-        app:layout_constraintTop_toBottomOf="@+id/etGroupName" />
+        app:layout_constraintStart_toEndOf="@+id/spCurrency"
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
     <Button
         android:id="@+id/btnCreateGroup"
         android:layout_width="208dp"
-        android:layout_height="72dp"
+        android:layout_height="62dp"
 
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="18dp"
         android:text="צור קבוצה"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etDescription" />
 
     <CalendarView
         android:id="@+id/cvEventDate"
-        android:layout_width="369dp"
-        android:layout_height="188dp"
+        android:layout_width="0dp"
+        android:layout_height="293dp"
         android:layout_marginStart="36dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="36dp"
-        android:layout_marginBottom="12dp"
-        app:layout_constraintBottom_toTopOf="@+id/dateTextView"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
     <TextView
         android:id="@+id/dateTextView"
-        android:layout_width="71dp"
-        android:layout_height="73dp"
-        android:layout_marginStart="129dp"
-        android:layout_marginEnd="119dp"
-        android:layout_marginBottom="13dp"
+        android:layout_width="0dp"
+        android:layout_height="33dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="48dp"
         android:text="התאריך שנבחר"
-        app:layout_constraintBottom_toTopOf="@+id/etGroupName"
-        app:layout_constraintEnd_toEndOf="@+id/etGroupName"
-        app:layout_constraintStart_toStartOf="@+id/cvEventDate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/etGroupName"
         app:layout_constraintTop_toBottomOf="@+id/cvEventDate" />
 
     <ListView
 
         android:id="@+id/lvallMembers"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="37dp"
-        android:layout_marginEnd="37dp"
-        android:layout_marginBottom="28dp"
-        app:layout_constraintBottom_toTopOf="@+id/etEventMembers"
+        android:layout_height="186dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="25dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spEventType" />
+        app:layout_constraintStart_toEndOf="@+id/lvSelectedMembers"
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
     <Spinner
         android:id="@+id/spDividedBy"
-        android:layout_width="111dp"
-        android:layout_height="59dp"
-        android:layout_marginStart="61dp"
-        android:layout_marginEnd="81dp"
-        android:layout_marginBottom="602dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/spEventType"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spCurrency" />
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="30dp"
+        app:layout_constraintEnd_toStartOf="@+id/dateTextView"
+        app:layout_constraintStart_toEndOf="@+id/textView6"
+        app:layout_constraintTop_toBottomOf="@+id/spEventType" />
 
-    <EditText
-        android:id="@+id/etEventMembers"
-        android:layout_width="400dp"
-        android:layout_height="70dp"
-        android:layout_marginStart="23dp"
-        android:layout_marginEnd="23dp"
-        android:layout_marginBottom="37dp"
-        android:ems="10"
-        android:inputType="text"
-        android:text="Name"
-        app:layout_constraintBottom_toTopOf="@+id/etDescription"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ListView
+        android:id="@+id/lvSelectedMembers"
+        android:layout_width="0dp"
+        android:layout_height="182dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="15dp"
+        app:layout_constraintEnd_toStartOf="@+id/lvallMembers"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lvallMembers" />
+        app:layout_constraintTop_toBottomOf="@+id/textView6" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="0dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="39dp"
+        android:layout_marginEnd="48dp"
+        android:text="בחר משתמשי קבוצה"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textView6"
+        app:layout_constraintTop_toBottomOf="@+id/spDividedBy" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="85dp"
+        android:layout_marginTop="39dp"
+        android:layout_marginEnd="83dp"
+        android:text="משתמשי הקבוצה"
+        app:layout_constraintEnd_toEndOf="@+id/textView5"
+        app:layout_constraintEnd_toStartOf="@+id/textView5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spDividedBy" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
