@@ -14,6 +14,11 @@ public class Group implements Serializable {
     private int dividedBy;
     private double totalAmount;
 
+    // No-argument constructor (required by Firebase for deserialization)
+    public Group() {
+        this.users = new ArrayList<>(); // Initialize the list to avoid null
+    }
+
     public Group(String groupId, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
         this.groupId = groupId;
         this.status = status;
@@ -21,7 +26,7 @@ public class Group implements Serializable {
         this.groupDescription = groupDescription;
         this.type = type;
         this.admin = admin;
-        this.users = users;
+        this.users = (users != null) ? users : new ArrayList<>(); // Ensure it's never null
         this.dividedBy = dividedBy;
         this.totalAmount = totalAmount;
     }

@@ -173,45 +173,62 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
 
     private void addMainSplitToDatabase() {
-        /// get the values from the input fields
+        // Get the values from the input fields
         stSPcurrency = spCurrency.getSelectedItem().toString();
-
-       // stspDividedBy= spDividedBy.getSelectedItem().toString();
-
         stSPeventType = spEventType.getSelectedItem().toString();
-        stDescription = etDescription.getText().toString();
-        stGroupName = etGroupName.getText() + "";
+        stDescription = etDescription.getText().toString().trim();
+        stGroupName = etGroupName.getText().toString().trim();
 
+        // Validate input
+        if (!isValidInput()) {
+            return;  // Stop if validation fails
+        }
 
-        /// validate the input
-        /// stop if the input is not valid
-//        if (!isValid(name, priceText, imageBase64)) return;
-
-        /// convert the price to double
-//        double price = Double.parseDouble(priceText);
-
-        /// generate a new id for the food
+        // Generate a new ID for the event
         String id = databaseService.generateMainSplitId();
 
-
-// public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
-
-        MainSplit mainSplit = new MainSplit(id, "not paid", stDate, stDescription,stSPeventType, user, usersSelected, 5, 1000.0);
+        // public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
+        MainSplit mainSplit = new MainSplit(id, "not paid", stDate, stDescription, stSPeventType, user, usersSelected, 5, 1000.0);
 
         databaseService.createNewMainSplit(mainSplit, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
-
-
-
-
+                Toast.makeText(AddNewEvent.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
+                finish();  // Close the activity
             }
 
             @Override
             public void onFailed(Exception e) {
-
+                Toast.makeText(AddNewEvent.this, "Failed to create event. Try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Validation method
+    private boolean isValidInput() {
+        if (stGroupName.isEmpty()) {
+            etGroupName.setError("Group name is required");
+            etGroupName.requestFocus();
+            return false;
+        }
+
+        if (stDescription.isEmpty()) {
+            etDescription.setError("Description is required");
+            etDescription.requestFocus();
+            return false;
+        }
+
+        if (stDate == null || stDate.isEmpty()) {
+            Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (usersSelected.isEmpty()) {
+            Toast.makeText(this, "Please select at least one member", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -225,28 +242,5 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         }
     }
 
-    /// validate the input
-//    private boolean isValid(String name, String priceText, String imageBase64) {
-//        if (name.isEmpty()) {
-//            Log.e(TAG, "Name is empty");
-//            foodNameEditText.setError("Name is required");
-//            foodNameEditText.requestFocus();
-//            return false;
-//        }
-//
-//        if (priceText.isEmpty()) {
-//            Log.e(TAG, "Price is empty");
-//            foodPriceEditText.setError("Price is required");
-//            foodPriceEditText.requestFocus();
-//            return false;
-//        }
-//
-//        if (imageBase64 == null) {
-//            Log.e(TAG, "Image is required");
-//            Toast.makeText(this, "Image is required", Toast.LENGTH_SHORT).show();
-//            return false;
-//        }
-//
-//        return true;
-//    }
+
 }

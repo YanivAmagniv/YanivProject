@@ -8,7 +8,7 @@ public class UserPay {
     public UserPay(User user, Double owns, Boolean status) {
         this.user = user;
         this.owns = owns;
-        this.status = String.valueOf(status);
+        this.status = status ? "Paid" : "Unpaid"; //  Convert Boolean to meaningful status
     }
 
     public UserPay() {
