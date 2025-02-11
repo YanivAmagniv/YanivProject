@@ -67,15 +67,14 @@ public class ExistentGroup extends AppCompatActivity {
                 groupList.clear();
 
                 for (Group group : groups) {
-                    // Check if user is the admin or a member
                     boolean isAdmin = group.getAdmin().getId().equals(userId);
                     boolean isMember = false;
 
-                    if (group.getUsers() != null) {  // Ensure it's not null before looping
-                        for (UserPay userPay : group.getUsers()) {  // Loop through UserPay objects
+                    if (group.getUsers() != null) {
+                        for (UserPay userPay : group.getUsers()) {
                             if (userPay.getUser() != null && userPay.getUser().getId().equals(userId)) {
                                 isMember = true;
-                                break; //  Stop the loop immediately after finding the user
+                                break;
                             }
                         }
                     }
@@ -85,7 +84,9 @@ public class ExistentGroup extends AppCompatActivity {
                     }
                 }
 
-                adapter.notifyDataSetChanged(); // Refresh UI
+                Log.d("ExistentGroup", "Total Groups Fetched: " + groupList.size()); // Debug log
+
+                adapter.notifyDataSetChanged();
             }
 
             @Override

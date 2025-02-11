@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class Group implements Serializable {
     private String groupId;
+    private String groupName;
     private String status;
     private String eventDate;
     private String groupDescription;
@@ -19,8 +20,9 @@ public class Group implements Serializable {
         this.users = new ArrayList<>(); // Initialize the list to avoid null
     }
 
-    public Group(String groupId, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
+    public Group(String groupId, String groupName, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
         this.groupId = groupId;
+        this.groupName = groupName;
         this.status = status;
         this.eventDate = eventDate;
         this.groupDescription = groupDescription;
@@ -37,6 +39,14 @@ public class Group implements Serializable {
 
     public void setGroupId(String groupId) {
         this.groupId = groupId;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     public String getStatus() {
@@ -107,6 +117,7 @@ public class Group implements Serializable {
     public String toString() {
         return "Group{" +
                 "groupId='" + groupId + '\'' +
+                ", groupName='" + groupName + '\'' +
                 ", status='" + status + '\'' +
                 ", eventDate='" + eventDate + '\'' +
                 ", groupDescription='" + groupDescription + '\'' +

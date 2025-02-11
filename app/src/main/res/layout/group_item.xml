@@ -1,47 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    android:layout_margin="8dp">
 
-    <TextView
-        android:id="@+id/group_name"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="שם קבוצה"
-        tools:layout_editor_absoluteX="175dp"
-        tools:layout_editor_absoluteY="36dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/group_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="סטטוס"
-        tools:layout_editor_absoluteX="177dp"
-        tools:layout_editor_absoluteY="69dp" />
+        <TextView
+            android:id="@+id/group_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Group Name"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
 
-    <TextView
-        android:id="@+id/group_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="תאריך"
-        tools:layout_editor_absoluteX="176dp"
-        tools:layout_editor_absoluteY="102dp" />
-
-    <TextView
-        android:id="@+id/group_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="תיאור"
-        tools:layout_editor_absoluteX="179dp"
-        tools:layout_editor_absoluteY="137dp" />
-
-    <TextView
-        android:id="@+id/group_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="סוג אירוע"
-        tools:layout_editor_absoluteX="175dp"
-        tools:layout_editor_absoluteY="172dp" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -191,7 +191,7 @@ public class DatabaseService {
             task.getResult().getChildren().forEach(dataSnapshot -> {
                 Group group = dataSnapshot.getValue(Group.class);
                 if (group != null) {
-                    Log.d(TAG, "Got group: " + group);
+                    Log.d(TAG, "Fetched group: " + group.getGroupName()); // Log group name
                     groups.add(group);
                 }
             });

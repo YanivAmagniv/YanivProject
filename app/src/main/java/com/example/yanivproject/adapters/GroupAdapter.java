@@ -1,5 +1,7 @@
 package com.example.yanivproject.adapters;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.Group;
+import com.example.yanivproject.screens.GroupDetailsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,18 +53,22 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         // Get the group at the given position
         Group group = groupList.get(position);
 
-        // Bind the group data to the views
-        holder.groupName.setText(group.getGroupId()); // Or use group.getType() if that makes more sense.
-        holder.groupDescription.setText(group.getGroupDescription());
-        holder.groupDate.setText(group.getEventDate());
+        // Bind the group name to the TextView
+        holder.groupName.setText(group.getGroupName());
 
+        // Handle the click event to show details in a new activity
         holder.itemView.setOnClickListener(v -> {
-            // Handle click event (e.g., open a new activity or show a dialog)
-            Toast.makeText(v.getContext(), "Clicked: " + group.getGroupId(), Toast.LENGTH_SHORT).show();
-            Toast.makeText(v.getContext(), "Clicked: " + group.getGroupDescription(), Toast.LENGTH_SHORT).show();
-            Toast.makeText(v.getContext(), "Clicked: " + group.getEventDate(), Toast.LENGTH_SHORT).show();
+            // Get the context from the itemView
+            Context context = v.getContext();
 
+            // Create an Intent to open the GroupDetailsActivity
+            Intent intent = new Intent(context, GroupDetailsActivity.class);
 
+            // Pass the Group object to the new activity
+            intent.putExtra("group", group);
+
+            // Start the activity
+            context.startActivity(intent);
         });
     }
 
