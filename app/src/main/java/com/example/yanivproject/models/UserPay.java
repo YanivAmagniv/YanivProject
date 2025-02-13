@@ -1,6 +1,10 @@
 package com.example.yanivproject.models;
 
-public class UserPay {
+import java.io.Serializable;
+
+public class UserPay implements Serializable {
+    private static final long serialVersionUID = 1L;  // Optional
+
     protected User user;
     protected double owns;
     protected String status;
@@ -8,21 +12,11 @@ public class UserPay {
     public UserPay(User user, Double owns, Boolean status) {
         this.user = user;
         this.owns = owns;
-        this.status = status ? "Paid" : "Unpaid"; //  Convert Boolean to meaningful status
+        this.status = status ? "Paid" : "Unpaid";
     }
 
     public UserPay() {
     }
-
-    @Override
-    public String toString() {
-        return "UserPay{" +
-                "user=" + user +
-                ", owns=" + owns +
-                ", status='" + status + '\'' +
-                '}';
-    }
-
 
     public User getUser() {
         return user;
@@ -46,5 +40,14 @@ public class UserPay {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "UserPay{" +
+                "user=" + user +
+                ", owns=" + owns +
+                ", status='" + status + '\'' +
+                '}';
     }
 }

@@ -1,9 +1,17 @@
 package com.example.yanivproject.models;
 
-public class User {
+import java.io.Serializable;
 
-    protected  String id;
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;  // Optional but recommended
+
+    protected String id;
     protected String fname;
+    protected String lname;
+    protected String phone;
+    protected String email;
+    protected String password;
+    protected String city;
 
     public User(String id, String fname, String lname, String phone, String email, String password, String city) {
         this.id = id;
@@ -14,28 +22,12 @@ public class User {
         this.password = password;
         this.city = city;
     }
-
-    protected String lname;
-    protected String phone;
-    protected String email;
-    protected String password;
-    protected String city;
-
-    public User(String id, String fname, String lname, String phone, String email, String city) {
-        this.id = id;
-        this.fname = fname;
-        this.lname = lname;
-        this.phone = phone;
-        this.email = email;
-        this.city = city;
-    }
-
-
-
+    
     public User() {
     }
 
-
+    public User(String uid, String email, String password, String fName, String lName, String phone) {
+    }
 
     public String getId() {
         return id;
@@ -83,6 +75,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     @Override

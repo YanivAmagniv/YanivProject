@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Group implements Serializable {
+    private static final long serialVersionUID = 1L;  // Optional
+
     private String groupId;
     private String groupName;
     private String status;
@@ -17,7 +19,7 @@ public class Group implements Serializable {
 
     // No-argument constructor (required by Firebase for deserialization)
     public Group() {
-        this.users = new ArrayList<>(); // Initialize the list to avoid null
+        this.users = new ArrayList<>();  // Initialize the list to avoid null
     }
 
     public Group(String groupId, String groupName, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
@@ -28,7 +30,7 @@ public class Group implements Serializable {
         this.groupDescription = groupDescription;
         this.type = type;
         this.admin = admin;
-        this.users = (users != null) ? users : new ArrayList<>(); // Ensure it's never null
+        this.users = (users != null) ? users : new ArrayList<>();  // Ensure it's never null
         this.dividedBy = dividedBy;
         this.totalAmount = totalAmount;
     }

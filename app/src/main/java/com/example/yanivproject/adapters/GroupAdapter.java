@@ -2,6 +2,7 @@ package com.example.yanivproject.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,24 +51,22 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     @Override
     public void onBindViewHolder(GroupViewHolder holder, int position) {
-        // Get the group at the given position
         Group group = groupList.get(position);
 
-        // Bind the group name to the TextView
-        holder.groupName.setText(group.getGroupName());
+        // Debug log to ensure data is coming through
+        Log.d("GroupAdapter", "Binding group at position " + position + ": " + group.getGroupName());
 
-        // Handle the click event to show details in a new activity
+        // Check if group name is being set correctly
+        if (group != null && group.getGroupName() != null) {
+            holder.groupName.setText(group.getGroupName());
+        } else {
+            holder.groupName.setText("No Name Available");  // Fallback text in case of null data
+        }
+
         holder.itemView.setOnClickListener(v -> {
-            // Get the context from the itemView
             Context context = v.getContext();
-
-            // Create an Intent to open the GroupDetailsActivity
             Intent intent = new Intent(context, GroupDetailsActivity.class);
-
-            // Pass the Group object to the new activity
             intent.putExtra("group", group);
-
-            // Start the activity
             context.startActivity(intent);
         });
     }

@@ -187,8 +187,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         // Generate a new ID for the event
         String id = databaseService.generateMainSplitId();
 
-        // public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
-        MainSplit mainSplit = new MainSplit(id, "not paid", stDate, stDescription, stSPeventType, user, usersSelected, 5, 1000.0);
+        // public MainSplit(String id,String groupName, String status, String eventDate, String detail, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
+        MainSplit mainSplit = new MainSplit(id,stGroupName, "not paid", stDate, stDescription, stSPeventType, user, usersSelected, 5, 1000.0);
 
         databaseService.createNewMainSplit(mainSplit, new DatabaseService.DatabaseCallback<Void>() {
             @Override

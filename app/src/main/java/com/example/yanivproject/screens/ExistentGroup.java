@@ -1,11 +1,8 @@
 package com.example.yanivproject.screens;
 
-import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -16,31 +13,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.adapters.GroupAdapter;
+import com.example.yanivproject.models.UserPay;
 import com.example.yanivproject.services.AuthenticationService;
 import com.example.yanivproject.services.DatabaseService;
-
-import com.example.yanivproject.models.Group;  //Import the Group model
-import com.example.yanivproject.models.UserPay;  // If you have this class for user payments
-import com.example.yanivproject.models.User;  // If you have this class for users
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.yanivproject.models.Group;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class ExistentGroup extends AppCompatActivity {
     DatabaseService databaseService;
     RecyclerView rvMyGroups;
 
     List<Group> groupList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_existent_group);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -53,7 +46,7 @@ public class ExistentGroup extends AppCompatActivity {
 
         // Initialize services and group list
         databaseService = DatabaseService.getInstance();
-        String userId = AuthenticationService.getInstance().getCurrentUserId(); // Get current user ID
+        String userId = AuthenticationService.getInstance().getCurrentUserId();  // Get current user ID
         groupList = new ArrayList<>();
 
         // Set adapter
@@ -84,9 +77,9 @@ public class ExistentGroup extends AppCompatActivity {
                     }
                 }
 
-                Log.d("ExistentGroup", "Total Groups Fetched: " + groupList.size()); // Debug log
+                Log.d("ExistentGroup", "Groups fetched: " + groupList.size());  // Log the size of the group list
 
-                adapter.notifyDataSetChanged();
+                adapter.notifyDataSetChanged();  // Notify the adapter to update the UI
             }
 
             @Override
@@ -94,8 +87,5 @@ public class ExistentGroup extends AppCompatActivity {
                 Log.e("ExistentGroup", "Error fetching groups", e);
             }
         });
-
-
     }
-
 }

@@ -3,7 +3,7 @@ package com.example.yanivproject.models;
 import java.util.ArrayList;
 
 public class MainSplit {
-    String id,status,eventDate,detail;
+    String id, groupName,status,eventDate,detail;
 
 
 
@@ -14,8 +14,9 @@ public class MainSplit {
     double totalAmount;
 
 
-    public MainSplit(String id, String status, String eventDate, String detail, String type, User admin, ArrayList<User> users, int dividedBy, double totalAmount) {
+    public MainSplit(String id,String groupName, String status, String eventDate, String detail, String type, User admin, ArrayList<User> users, int dividedBy, double totalAmount) {
         this.id = id;
+        this.groupName= groupName;
         this.status = status;
         this.eventDate = eventDate;
         this.detail = detail;
@@ -94,6 +95,13 @@ public class MainSplit {
     }
 
 
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
 
     public String getId() {
         return id;
