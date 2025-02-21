@@ -22,11 +22,8 @@ public class User implements Serializable {
         this.password = password;
         this.city = city;
     }
-    
-    public User() {
-    }
 
-    public User(String uid, String email, String password, String fName, String lName, String phone) {
+    public User() {
     }
 
     public String getId() {
@@ -83,6 +80,10 @@ public class User implements Serializable {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getFullName() {
+        return fname + " " + lname; // Return full name
     }
 
     @Override

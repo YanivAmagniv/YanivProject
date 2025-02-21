@@ -1,6 +1,5 @@
 package com.example.yanivproject.screens;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import androidx.activity.EdgeToEdge;
@@ -13,11 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.adapters.GroupAdapter;
+import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.UserPay;
 import com.example.yanivproject.services.AuthenticationService;
 import com.example.yanivproject.services.DatabaseService;
-import com.example.yanivproject.models.Group;
-import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +30,9 @@ public class ExistentGroup extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_existent_group);
+        setContentView(R.layout.activity_existent_group);  // Ensure this matches your layout file name
 
+        // Set up window insets for edge-to-edge support
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -50,7 +49,7 @@ public class ExistentGroup extends AppCompatActivity {
         groupList = new ArrayList<>();
 
         // Set adapter
-        GroupAdapter adapter = new GroupAdapter(groupList);
+        GroupAdapter adapter = new GroupAdapter(groupList, this);
         rvMyGroups.setAdapter(adapter);
 
         // Fetch groups from Firebase and filter by admin ID or members list
@@ -77,9 +76,9 @@ public class ExistentGroup extends AppCompatActivity {
                     }
                 }
 
-                Log.d("ExistentGroup", "Groups fetched: " + groupList.size());  // Log the size of the group list
+                Log.d("ExistentGroup", "Groups fetched: " + groupList.size());
 
-                adapter.notifyDataSetChanged();  // Notify the adapter to update the UI
+                adapter.notifyDataSetChanged();
             }
 
             @Override

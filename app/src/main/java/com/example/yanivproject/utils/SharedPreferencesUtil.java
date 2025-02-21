@@ -129,7 +129,9 @@ public class SharedPreferencesUtil {
         String fName = sharedPreferences.getString("Fname", "");
         String lName = sharedPreferences.getString("Lname", "");
         String phone = sharedPreferences.getString("phone", "");
-        return new User(uid, email, password, fName, lName, phone);
+        String city = sharedPreferences.getString("city", "");
+
+        return new User(uid, email, password, fName, lName, phone,city);
     }
 
     /// Sign out the user by removing user data from shared preferences

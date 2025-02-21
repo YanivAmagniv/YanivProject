@@ -7,12 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.Group;
+import com.example.yanivproject.screens.ExistentGroup;
 import com.example.yanivproject.screens.GroupDetailsActivity;
 
 import java.util.ArrayList;
@@ -21,10 +21,13 @@ import java.util.List;
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
 
     private List<Group> groupList;
+    private Context context;
 
     // Constructor for the adapter
-    public GroupAdapter(List<Group> groupList) {
+    public GroupAdapter(List<Group> groupList,Context context) {
         this.groupList = (groupList != null) ? groupList : new ArrayList<>();
+        this.context = context;
+
     }
 
     // ViewHolder class to represent individual group items
@@ -56,13 +59,10 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         // Debug log to ensure data is coming through
         Log.d("GroupAdapter", "Binding group at position " + position + ": " + group.getGroupName());
 
-        // Check if group name is being set correctly
-        if (group != null && group.getGroupName() != null) {
-            holder.groupName.setText(group.getGroupName());
-        } else {
-            holder.groupName.setText("No Name Available");  // Fallback text in case of null data
-        }
+        // Set group name
+        holder.groupName.setText(group.getGroupName() != null ? group.getGroupName() : "No Name Available");
 
+        // Handle item click
         holder.itemView.setOnClickListener(v -> {
             Context context = v.getContext();
             Intent intent = new Intent(context, GroupDetailsActivity.class);
@@ -73,7 +73,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     @Override
     public int getItemCount() {
-        // Return the size of the group list
         return groupList.size();
     }
 }
