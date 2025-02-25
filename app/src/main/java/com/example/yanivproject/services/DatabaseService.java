@@ -168,10 +168,20 @@ public class DatabaseService {
     /// @return a new id for the food
     /// @see #generateNewId(String)
     /// @see Food
-    public String generateMainSplitId() {
+   /// public String generateMainSplitId() {
+  ///      return generateNewId("groups");
+  ///  }
+
+
+/// generate a new id for a new group in the database
+/// @return a new id for the group
+    public String generateGroupId() {
         return generateNewId("groups");
     }
 
+    public void createNewGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
+        writeData("groups/" + group.getGroupId(), group, callback);
+    }
     /// get all the groups from the database
 /// @param callback the callback to call when the operation is completed
 ///              the callback will receive a list of group objects
