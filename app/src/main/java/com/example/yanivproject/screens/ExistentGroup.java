@@ -22,9 +22,12 @@ import java.util.List;
 
 public class ExistentGroup extends AppCompatActivity {
     DatabaseService databaseService;
-    RecyclerView rvMyGroups;
+    RecyclerView rvPaidGroups, rvUnpaidGroups;
 
-    List<Group> groupList;
+    List<Group> paidGroups = new ArrayList<>();
+    List<Group> unpaidGroups = new ArrayList<>();
+
+    GroupAdapter paidAdapter, unpaidAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,24 +42,33 @@ public class ExistentGroup extends AppCompatActivity {
             return insets;
         });
 
-        // Initialize RecyclerView
-        rvMyGroups = findViewById(R.id.rvMyGroups);
-        rvMyGroups.setLayoutManager(new LinearLayoutManager(this));
+        // Initialize RecyclerViews for Paid and Unpaid groups
+        rvPaidGroups = findViewById(R.id.rvPaidGroups);
+        rvUnpaidGroups = findViewById(R.id.rvUnpaidGroups);
 
-        // Initialize services and group list
+        rvPaidGroups.setLayoutManager(new LinearLayoutManager(this));
+        rvUnpaidGroups.setLayoutManager(new LinearLayoutManager(this));
+
+        // Initialize adapters
+        paidAdapter = new GroupAdapter(paidGroups, this);
+        unpaidAdapter = new GroupAdapter(unpaidGroups, this);
+
+        rvPaidGroups.setAdapter(paidAdapter);
+        rvUnpaidGroups.setAdapter(unpaidAdapter);
+
+        // Initialize Firebase database service
         databaseService = DatabaseService.getInstance();
-        String userId = AuthenticationService.getInstance().getCurrentUserId();  // Get current user ID
-        groupList = new ArrayList<>();
+        String userId = AuthenticationService.getInstance().getCurrentUserId(); // Get current user ID
 
-        // Set adapter
-        GroupAdapter adapter = new GroupAdapter(groupList, this);
-        rvMyGroups.setAdapter(adapter);
+        fetchGroups(userId);
+    }
 
-        // Fetch groups from Firebase and filter by admin ID or members list
+    private void fetchGroups(String userId) {
         databaseService.getGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
             @Override
             public void onCompleted(List<Group> groups) {
-                groupList.clear();
+                paidGroups.clear();
+                unpaidGroups.clear();
 
                 for (Group group : groups) {
                     boolean isAdmin = group.getAdmin().getId().equals(userId);
@@ -72,13 +84,17 @@ public class ExistentGroup extends AppCompatActivity {
                     }
 
                     if (isAdmin || isMember) {
-                        groupList.add(group);
+                        if ("Paid".equals(group.getStatus())) {
+                            paidGroups.add(group);
+                        } else {
+                            unpaidGroups.add(group);
+                        }
                     }
                 }
 
-                Log.d("ExistentGroup", "Groups fetched: " + groupList.size());
+                Log.d("ExistentGroup", "Paid Groups: " + paidGroups.size() + ", Unpaid Groups: " + unpaidGroups.size());
 
-                adapter.notifyDataSetChanged();
+                updateUI();
             }
 
             @Override
@@ -86,5 +102,10 @@ public class ExistentGroup extends AppCompatActivity {
                 Log.e("ExistentGroup", "Error fetching groups", e);
             }
         });
+    }
+
+    private void updateUI() {
+        paidAdapter.notifyDataSetChanged();
+        unpaidAdapter.notifyDataSetChanged();
     }
 }

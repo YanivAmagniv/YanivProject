@@ -88,7 +88,6 @@
             android:textSize="16sp"
             android:paddingBottom="8dp" />
 
-        <!-- Add other fields as necessary -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -103,6 +102,29 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status:"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/group_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:paddingBottom="8dp" />
+        <Button
+            android:id="@+id/btnEditStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mark as Paid"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@android:color/holo_green_light"
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/delete_button"
