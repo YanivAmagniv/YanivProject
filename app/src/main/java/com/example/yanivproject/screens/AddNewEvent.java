@@ -18,178 +18,109 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.adapters.UserNamAdapter;
-import com.example.yanivproject.models.Group;  // Updated import
+import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
 import com.example.yanivproject.services.AuthenticationService;
-import com.example.yanivproject.services.DatabaseService;
-
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class AddNewEvent extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
-    Spinner spCurrency, spEventType;
-    CalendarView cvEventDate;
-    TextView dateTextView;
-    String stDate;
+public class AddNewEvent extends AppCompatActivity {
 
-    EditText etGroupName, etDescription;
-    String stGroupName, stDescription, stSPcurrency, stSPeventType;
-
-    Button btnCreateGroup;
-    DatabaseService databaseService;
-    private AuthenticationService authenticationService;
-    private String uid;
-
-    User user;
-    ListView lvMembers, lvSelectedMembers;
-    ArrayList<User> users = new ArrayList<>();
-    UserNamAdapter<User> adapter;
-    private UserNamAdapter<User> selectedAdapter;
-    ArrayList<User> usersSelected = new ArrayList<>();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
+    private Spinner spCurrency, spEventType, spDivisionMethod;
+    private EditText etGroupName, etDescription;
+    private CalendarView cvEventDate;
+    private ListView lvAllMembers, lvSelectedMembers;
+    private Button btnCreateGroup;
+    private ArrayList<User> allMembers = new ArrayList<>();
+    private ArrayList<UserPay> selectedMembers = new ArrayList<>();
+    private String groupName, groupDescription, groupType, eventDate;
+    private int dividedBy;
+    private double totalAmount;
+    private User currentUser;
+    private TextView dateTextView;
+    private String divisionMethod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_newgroup);
 
-        databaseService = DatabaseService.getInstance();
-        authenticationService = AuthenticationService.getInstance();
-        uid = authenticationService.getCurrentUserId();
-
-        initViews();
-
-        users = new ArrayList<>();
-        adapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, users);
-        lvMembers.setAdapter(adapter);
-        lvMembers.setOnItemClickListener(this);
-
-        selectedAdapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, usersSelected);
-        lvSelectedMembers.setAdapter(selectedAdapter);
-
-        lvSelectedMembers.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                User selectedUser = usersSelected.get(position);
-                usersSelected.remove(selectedUser);
-                selectedAdapter.notifyDataSetChanged();
-            }
-        });
-
-        databaseService.getUsers(new DatabaseService.DatabaseCallback<List<User>>() {
-            @Override
-            public void onCompleted(List<User> object) {
-                users.clear();
-                users.addAll(object);
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                Log.e("TAG", "onFailed: ", e);
-            }
-        });
-
-        databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
-            @Override
-            public void onCompleted(User u) {
-                user = u;
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-            }
-        });
-    }
-
-    private void initViews() {
-        btnCreateGroup = findViewById(R.id.btnCreateGroup);
-        lvSelectedMembers = findViewById(R.id.lvSelectedMembers);
+        etGroupName = findViewById(R.id.etGroupName);
+        etDescription = findViewById(R.id.etDescription);
         spCurrency = findViewById(R.id.spCurrency);
         spEventType = findViewById(R.id.spEventType);
-        etDescription = findViewById(R.id.etDescription);
-        etGroupName = findViewById(R.id.etGroupName);
-        lvMembers = findViewById(R.id.lvallMembers);
-        btnCreateGroup.setOnClickListener(this);
-
         cvEventDate = findViewById(R.id.cvEventDate);
+        lvAllMembers = findViewById(R.id.lvallMembers);
+        lvSelectedMembers = findViewById(R.id.lvSelectedMembers);
+        btnCreateGroup = findViewById(R.id.btnCreateGroup);
         dateTextView = findViewById(R.id.dateTextView);
+        spDivisionMethod = findViewById(R.id.spDivisionMethod);
+
+        // Get the current user
+        currentUser = AuthenticationService.getCurrentUser(auth);
+
+        // Listen for the date selection
         cvEventDate.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            stDate = year + "-" + (month + 1) + "-" + dayOfMonth;
-            dateTextView.setText(stDate);
+            eventDate = year + "/" + (month + 1) + "/" + dayOfMonth;
+            dateTextView.setText("תאריך שנבחר: " + eventDate);
         });
+
+        spDivisionMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                divisionMethod = spDivisionMethod.getSelectedItem().toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                divisionMethod = "Manual"; // Default method
+            }
+        });
+
+        btnCreateGroup.setOnClickListener(view -> createGroup());
     }
 
-    @Override
-    public void onClick(View v) {
-        if (v == btnCreateGroup) {
-            addGroupToDatabase();  // Updated method call
-        }
-    }
+    private void createGroup() {
+        groupName = etGroupName.getText().toString();
+        groupDescription = etDescription.getText().toString();
+        groupType = spEventType.getSelectedItem().toString();
 
-    private void addGroupToDatabase() {
-        stSPcurrency = spCurrency.getSelectedItem().toString();
-        stSPeventType = spEventType.getSelectedItem().toString();
-        stDescription = etDescription.getText().toString().trim();
-        stGroupName = etGroupName.getText().toString().trim();
-
-        if (!isValidInput()) {
+        // Validate input
+        if (groupName.isEmpty() || groupDescription.isEmpty() || eventDate.isEmpty()) {
+            Toast.makeText(this, "נא למלא את כל השדות", Toast.LENGTH_SHORT).show();
             return;
         }
-        ArrayList<UserPay> userPayList = new ArrayList<>();  // Create a new list to hold UserPay objects
 
-        // Iterate over each selected user and create a UserPay object
-        for (User selectedUser : usersSelected) {
-            userPayList.add(new UserPay(selectedUser, 0.0, false)); // Assuming they owe 0.0 and haven't paid
-        }
-        String groupId = databaseService.generateGroupId();  // Generate a new ID for the group
-        // Create a new Group instance
-        Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, stSPeventType, user, userPayList, 5, 1000.0);
+        // Calculate the total amount if needed
+        totalAmount = 100.00; // You can replace this with input logic if necessary
 
-        databaseService.createNewGroup(group, new DatabaseService.DatabaseCallback<Void>() {
-            @Override
-            public void onCompleted(Void object) {
-                Toast.makeText(AddNewEvent.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-                finish();
-            }
+        // Create the group object
+        Group group = new Group();
+        group.setGroupName(groupName);
+        group.setGroupDescription(groupDescription);
+        group.setType(groupType);
+        group.setEventDate(eventDate);
+        group.setStatus("Unpaid");
+        group.setAdmin(currentUser);
+        group.setDividedBy(dividedBy);
+        group.setTotalAmount(totalAmount);
+        group.setDivisionMethod(divisionMethod);
 
-            @Override
-            public void onFailed(Exception e) {
-                Toast.makeText(AddNewEvent.this, "Failed to create event. Try again.", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private boolean isValidInput() {
-        if (stGroupName.isEmpty()) {
-            etGroupName.setError("Group name is required");
-            etGroupName.requestFocus();
-            return false;
-        }
-        if (stDescription.isEmpty()) {
-            etDescription.setError("Description is required");
-            etDescription.requestFocus();
-            return false;
-        }
-        if (stDate == null || stDate.isEmpty()) {
-            Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        if (usersSelected.isEmpty()) {
-            Toast.makeText(this, "Please select at least one member", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        User selectedUser = (User) parent.getItemAtPosition(position);
-        if (!usersSelected.contains(selectedUser)) {
-            usersSelected.add(selectedUser);
-            selectedAdapter.notifyDataSetChanged();
-        }
+        // Save group to Firestore
+        db.collection("groups").add(group)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "הקבוצה נוצרה בהצלחה", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "שגיאה בהוספת קבוצה", Toast.LENGTH_SHORT).show();
+                    Log.e("AddGroupError", "Error adding group", e);
+                });
     }
 }

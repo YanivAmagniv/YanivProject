@@ -22,6 +22,11 @@
         <item>אחר</item>
 
     </string-array>
+    <string-array name="divisionMethodArr">
+        <item>By Percentage</item>
+        <item>Equally</item>
+        <item>Custom Amounts</item>
+    </string-array>
 
     <string-array name="currencyArr">
         <item>INS</item> <!-- ISRAELI SHEKEL -->

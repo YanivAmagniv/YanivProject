@@ -89,6 +89,7 @@
             android:id="@+id/lvallMembers"
             android:layout_width="0dp"
             android:layout_height="186dp"
+            android:nestedScrollingEnabled="true"
             app:layout_constraintTop_toBottomOf="@+id/dateTextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/lvSelectedMembers"
@@ -98,6 +99,7 @@
         <ListView
             android:id="@+id/lvSelectedMembers"
             android:layout_width="0dp"
+            android:nestedScrollingEnabled="true"
             android:layout_height="186dp"
             app:layout_constraintTop_toBottomOf="@+id/dateTextView"
             app:layout_constraintStart_toEndOf="@+id/lvallMembers"
@@ -105,12 +107,45 @@
             android:layout_marginTop="16dp"
             android:layout_marginStart="8dp" />
 
+        <!-- Split Section -->
+        <TextView
+            android:id="@+id/textViewSplit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="בחירת אופן חלוקה"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@+id/lvSelectedMembers"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <Spinner
+            android:id="@+id/spDivisionMethod"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:entries="@array/divisionMethodArr"
+            app:layout_constraintTop_toBottomOf="@+id/textViewSplit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etAmount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="סכום"
+            android:inputType="numberDecimal"
+            app:layout_constraintTop_toBottomOf="@+id/spDivisionMethod"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+
         <Button
             android:id="@+id/btnCreateGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="צור קבוצה"
-            app:layout_constraintTop_toBottomOf="@+id/lvallMembers"
+            app:layout_constraintTop_toBottomOf="@+id/etAmount"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="24dp" />
