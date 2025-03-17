@@ -1,11 +1,13 @@
 package com.example.yanivproject.screens;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +16,8 @@ import com.example.yanivproject.R;
 import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -21,11 +25,19 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 
 public class GroupDetailsActivity extends AppCompatActivity {
-    private TextView groupNameText, groupDescriptionText, groupDateText, groupTypeText, groupCurrencyText, groupParticipantsText, groupStatusText;
+    private TextView groupNameText, groupDescriptionText, groupDateText, groupTypeText, groupTotalAmountText, groupParticipantsText, groupStatusText;
     private Button deleteButton, editStatusButton;
     private Group group;
     private DatabaseReference groupRef;
+    private TextView userAmountDueText;
+    private String currentUserId; // Assume you have a way to get the current logged-in user ID
 
+    private double totalAmount;
+    private int numberOfParticipants;
+    private String splittingMethod;
+    private double userOwedAmount;
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,11 +48,14 @@ public class GroupDetailsActivity extends AppCompatActivity {
         groupDescriptionText = findViewById(R.id.group_description);
         groupDateText = findViewById(R.id.group_date);
         groupTypeText = findViewById(R.id.group_type);
-        groupCurrencyText = findViewById(R.id.group_currency);
+        groupTotalAmountText = findViewById(R.id.group_totalAmount);
         groupParticipantsText = findViewById(R.id.group_participants);
         groupStatusText = findViewById(R.id.group_status);
         deleteButton = findViewById(R.id.delete_button);
         editStatusButton = findViewById(R.id.btnEditStatus);
+
+        userAmountDueText = findViewById(R.id.user_amount_due);
+
 
         // Retrieve the group object passed from the adapter
         group = (Group) getIntent().getSerializableExtra("group");
@@ -53,8 +68,36 @@ public class GroupDetailsActivity extends AppCompatActivity {
             groupDescriptionText.setText(group.getGroupDescription() != null ? group.getGroupDescription() : "No description available");
             groupDateText.setText(group.getEventDate());
             groupTypeText.setText(group.getType());
-            groupCurrencyText.setText("Currency: " + getCurrencyString(group.getTotalAmount()));
+            groupTotalAmountText.setText(" " + getSplittingMethod(group.getTotalAmount()));
             groupStatusText.setText(group.getStatus());
+
+            currentUserId = "someUserId"; // Fetch from FirebaseAuth or shared preferences
+
+            if (group != null) {
+                // Calculate and display the user's owed amount
+                displayUserOwedAmount();
+            }
+
+            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (firebaseUser != null) {
+                currentUserId = firebaseUser.getUid(); // This is the current user's unique ID
+            } else {
+                Log.e("GroupDetailsActivity", "User not logged in");
+            }
+
+
+            // Handle each splitting method
+            if ("Even Split".equals(splittingMethod)) {
+                // Split evenly among all participants
+                userOwedAmount = totalAmount / numberOfParticipants;
+            } else if ("Percentage Split".equals(splittingMethod)) {
+                // Assume the user has a percentage input
+                double userPercentage = getUserPercentage(currentUserId); // Fetch user's percentage
+                userOwedAmount = (userPercentage / 100) * totalAmount;
+            } else if ("Custom Split".equals(splittingMethod)) {
+                // If user has input a custom amount
+                userOwedAmount = getUserCustomAmount(currentUserId); // Fetch custom amount for the user
+            }
 
             // Prepare participant names
             StringBuilder participants = new StringBuilder();
@@ -91,6 +134,39 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 markGroupAsPaid();
             }
         });
+    }
+
+    // Utility method to format currency
+    private String getSplittingMethod(double amount) {
+        return String.format("$%.2f", amount);
+    }
+
+    // Helper method to get the user's percentage (this could come from a field in the database)
+    private double getUserPercentage(String userId) {
+        // For demonstration, assume a simple lookup
+        // Replace with actual logic to get the user's percentage from the database
+        return 20.0; // Example: 20% responsibility
+    }
+
+    // Helper method to get the user's custom amount (could be user input or from the database)
+    private double getUserCustomAmount(String userId) {
+        // Replace with logic to get the custom amount the user owes
+        return 50.0; // Example: custom amount that the user owes
+    }
+
+    private void displayUserOwedAmount() {
+        double userShare = 0.0;
+
+        if (group.getUsers() != null) {
+            for (UserPay userPay : group.getUsers()) {
+                if (userPay.getUser().getId().equals(currentUserId)) {
+                    userShare = userPay.getOwns();
+                    break;
+                }
+            }
+        }
+
+        userAmountDueText.setText(getCurrencyString(userShare));
     }
 
     private String getCurrencyString(double totalAmount) {

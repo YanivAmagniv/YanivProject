@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.EditText;
@@ -32,6 +33,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     Spinner spCurrency, spEventType;
     CalendarView cvEventDate;
     TextView dateTextView;
+    EditText etTotalAmount;
+    Spinner spSplittingMethod;
     String stDate;
 
     EditText etGroupName, etDescription;
@@ -65,6 +68,11 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         adapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, users);
         lvMembers.setAdapter(adapter);
         lvMembers.setOnItemClickListener(this);
+
+        String[] splittingMethods = {"Equal Split", "Percentage-based", "Custom Split"};
+        ArrayAdapter<String> splitAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, splittingMethods);
+        splitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spSplittingMethod.setAdapter(splitAdapter);
 
         selectedAdapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, usersSelected);
         lvSelectedMembers.setAdapter(selectedAdapter);
@@ -113,6 +121,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         etGroupName = findViewById(R.id.etGroupName);
         lvMembers = findViewById(R.id.lvallMembers);
         btnCreateGroup.setOnClickListener(this);
+        etTotalAmount = findViewById(R.id.etTotalAmount);
+        spSplittingMethod = findViewById(R.id.spSplittingMethod);
 
         cvEventDate = findViewById(R.id.cvEventDate);
         dateTextView = findViewById(R.id.dateTextView);
@@ -140,13 +150,27 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         }
         ArrayList<UserPay> userPayList = new ArrayList<>();  // Create a new list to hold UserPay objects
 
+        String totalAmountStr = etTotalAmount.getText().toString().trim();
+        String selectedSplittingMethod = spSplittingMethod.getSelectedItem().toString();
+
+        if (totalAmountStr.isEmpty()) {
+            etTotalAmount.setError("Total amount is required");
+            etTotalAmount.requestFocus();
+            return;
+        }
+
+        double totalAmount = Double.parseDouble(totalAmountStr);
+
         // Iterate over each selected user and create a UserPay object
         for (User selectedUser : usersSelected) {
             userPayList.add(new UserPay(selectedUser, 0.0, false)); // Assuming they owe 0.0 and haven't paid
         }
         String groupId = databaseService.generateGroupId();  // Generate a new ID for the group
         // Create a new Group instance
-        Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, stSPeventType, user, userPayList, 5, 1000.0);
+        Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, stSPeventType, user, userPayList, selectedSplittingMethod, totalAmount);
+
+
+
 
         databaseService.createNewGroup(group, new DatabaseService.DatabaseCallback<Void>() {
             @Override

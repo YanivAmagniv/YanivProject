@@ -14,7 +14,7 @@ public class Group implements Serializable {
     private String type;
     private User admin;
     private ArrayList<UserPay> users;
-    private int dividedBy;
+    private String splittingMethod;
     private double totalAmount;
 
     // No-argument constructor (required by Firebase for deserialization)
@@ -22,7 +22,7 @@ public class Group implements Serializable {
         this.users = new ArrayList<>();  // Initialize the list to avoid null
     }
 
-    public Group(String groupId, String groupName, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, int dividedBy, double totalAmount) {
+    public Group(String groupId, String groupName, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, String splittingMethod, double totalAmount) {
         this.groupId = groupId;
         this.groupName = groupName;
         this.status = status;
@@ -31,7 +31,7 @@ public class Group implements Serializable {
         this.type = type;
         this.admin = admin;
         this.users = (users != null) ? users : new ArrayList<>();  // Ensure it's never null
-        this.dividedBy = dividedBy;
+        this.splittingMethod = splittingMethod;
         this.totalAmount = totalAmount;
     }
 
@@ -99,12 +99,12 @@ public class Group implements Serializable {
         this.users = users;
     }
 
-    public int getDividedBy() {
-        return dividedBy;
+    public String getSplittingMethod() {
+        return splittingMethod;
     }
 
-    public void setDividedBy(int dividedBy) {
-        this.dividedBy = dividedBy;
+    public void setSplittingMethod(String splittingMethod) {
+        this.splittingMethod = splittingMethod;
     }
 
     public double getTotalAmount() {
@@ -126,7 +126,7 @@ public class Group implements Serializable {
                 ", type='" + type + '\'' +
                 ", admin=" + admin +
                 ", users=" + users +
-                ", dividedBy=" + dividedBy +
+                ", splittingMethod=" + splittingMethod +
                 ", totalAmount=" + totalAmount +
                 '}';
     }
