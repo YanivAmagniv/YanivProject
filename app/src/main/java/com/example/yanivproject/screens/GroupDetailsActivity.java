@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.Locale;
@@ -32,9 +33,9 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private TextView userAmountDueText;
     private String currentUserId; // Assume you have a way to get the current logged-in user ID
 
-    private double totalAmount;
+
     private int numberOfParticipants;
-    private String splittingMethod;
+
     private double userOwedAmount;
 
     @SuppressLint("MissingInflatedId")
@@ -86,18 +87,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
             }
 
 
-            // Handle each splitting method
-            if ("Even Split".equals(splittingMethod)) {
-                // Split evenly among all participants
-                userOwedAmount = totalAmount / numberOfParticipants;
-            } else if ("Percentage Split".equals(splittingMethod)) {
-                // Assume the user has a percentage input
-                double userPercentage = getUserPercentage(currentUserId); // Fetch user's percentage
-                userOwedAmount = (userPercentage / 100) * totalAmount;
-            } else if ("Custom Split".equals(splittingMethod)) {
-                // If user has input a custom amount
-                userOwedAmount = getUserCustomAmount(currentUserId); // Fetch custom amount for the user
-            }
+
 
             // Prepare participant names
             StringBuilder participants = new StringBuilder();
@@ -149,7 +139,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         if (group.getUsers() != null) {
             for (UserPay userPay : group.getUsers()) {
                 if (userPay.getUser().getId().equals(userId)) {
-                    userPercentage = userPay.getPercentage(); // Assuming `percentage` is a field in UserPay
+                    userPercentage = userPay.getPercentage();
                     break;
                 }
             }
@@ -166,7 +156,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         if (group.getUsers() != null) {
             for (UserPay userPay : group.getUsers()) {
                 if (userPay.getUser().getId().equals(userId)) {
-                    userCustomAmount = userPay.getCustomAmount(); // Assuming `customAmount` is a field in UserPay
+                    userCustomAmount = userPay.getCustomAmount();
                     break;
                 }
             }
@@ -175,28 +165,37 @@ public class GroupDetailsActivity extends AppCompatActivity {
         return userCustomAmount;
     }
 
+
+
     private void displayUserOwedAmount() {
         double userShare = 0.0;
 
         if (group.getUsers() != null) {
             for (UserPay userPay : group.getUsers()) {
+                Log.d("DEBUG", "Checking UserPay: " + userPay.getUser().getId()); // Debugging
+
                 if (userPay.getUser().getId().equals(currentUserId)) {
-                    if ("Even Split".equals(splittingMethod)) {
-                        // Split evenly among all participants
-                        userShare = totalAmount / numberOfParticipants;
-                    } else if ("Percentage Split".equals(splittingMethod)) {
-                        // Use the user's percentage responsibility
-                        double userPercentage = getUserPercentage(currentUserId);
-                        userShare = (userPercentage / 100) * totalAmount;
-                    } else if ("Custom Split".equals(splittingMethod)) {
-                        // Use the custom amount the user owes
-                        userShare = getUserCustomAmount(currentUserId);
+                    Log.d("DEBUG", "Matched current user: " + currentUserId);
+
+                    if ("Equal Split".equals(group.getSplittingMethod())) {
+                        userShare = group.getTotalAmount() / numberOfParticipants;
+                        Log.d("DEBUG", "Equal Split - User Share: " + userShare);
+                    } else if ("Percentage-based".equals(group.getSplittingMethod())) {
+                        double userPercentage = userPay.getPercentage(); // Now from UserPay
+                        userShare = (userPercentage / 100) * group.getTotalAmount();
+                        Log.d("DEBUG", "Percentage Split - User Share: " + userShare);
+                    } else if ("Custom Split".equals(group.getSplittingMethod())) {
+                        userShare = userPay.getCustomAmount(); // Now from UserPay
+                        Log.d("DEBUG", "Custom Split - User Share: " + userShare);
                     }
                     break;
                 }
             }
+        } else {
+            Log.e("DEBUG", "group.getUsers() is null");
         }
 
+        Log.d("DEBUG", "Final User Share: " + userShare);
         userAmountDueText.setText(getCurrencyString(userShare));
     }
 

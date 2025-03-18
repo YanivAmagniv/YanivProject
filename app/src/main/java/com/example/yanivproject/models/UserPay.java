@@ -8,11 +8,15 @@ public class UserPay implements Serializable {
     protected User user;
     protected double owns;
     protected String status;
+    protected double percentage;   // New field for percentage-based split
+    protected double customAmount; // New field for custom amount split
 
-    public UserPay(User user, Double owns, Boolean status) {
+    public UserPay(User user, double owns, boolean status, double percentage, double customAmount) {
         this.user = user;
         this.owns = owns;
         this.status = status ? "Paid" : "Unpaid";
+        this.percentage = percentage;
+        this.customAmount = customAmount;
     }
 
     public UserPay() {
@@ -42,12 +46,30 @@ public class UserPay implements Serializable {
         this.status = status;
     }
 
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
+    }
+
+    public double getCustomAmount() {
+        return customAmount;
+    }
+
+    public void setCustomAmount(double customAmount) {
+        this.customAmount = customAmount;
+    }
+
     @Override
     public String toString() {
         return "UserPay{" +
                 "user=" + user +
                 ", owns=" + owns +
                 ", status='" + status + '\'' +
+                ", percentage=" + percentage +
+                ", customAmount=" + customAmount +
                 '}';
     }
 }

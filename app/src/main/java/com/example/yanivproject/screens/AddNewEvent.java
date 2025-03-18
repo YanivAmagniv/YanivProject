@@ -189,7 +189,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         if (selectedSplittingMethod.equals("Equal Split")) {
             double equalShare = totalAmount / usersSelected.size();
             for (User selectedUser : usersSelected) {
-                userPayList.add(new UserPay(selectedUser, equalShare, false));
+                userPayList.add(new UserPay(selectedUser, equalShare, false, 0.0, 0.0));
             }
         } else if (selectedSplittingMethod.equals("Percentage-based")) {
             double totalPercentage = 0.0;
@@ -198,7 +198,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
                 double userPercentage = getUserPercentage();
                 double userAmount = totalAmount * (userPercentage / 100);
                 totalPercentage += userPercentage;
-                userPayList.add(new UserPay(selectedUser, userAmount, false));
+                userPayList.add(new UserPay(selectedUser, userAmount, false, userPercentage, 0.0));
             }
             if (totalPercentage != 100.0) {
                 Toast.makeText(this, "Total percentage must equal 100%", Toast.LENGTH_SHORT).show();
@@ -207,7 +207,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         } else if (selectedSplittingMethod.equals("Custom Split")) {
             for (User selectedUser : usersSelected) {
                 double userAmount = getUserCustomAmount();
-                userPayList.add(new UserPay(selectedUser, userAmount, false));
+                userPayList.add(new UserPay(selectedUser, userAmount, false, 0.0, userAmount));
             }
         }
 
