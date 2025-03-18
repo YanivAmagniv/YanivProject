@@ -22,6 +22,14 @@ public class User implements Serializable {
         this.password = password;
         this.city = city;
     }
+    public User(User user) {
+        this.id = user.id;
+        this.fname = user.fname;
+        this.lname = user.lname;
+        this.phone = user.phone;
+        this.email = user.email;
+
+    }
 
     public User() {
     }

@@ -101,6 +101,26 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"/>
 
+        <!-- Percentage-Based Input -->
+        <EditText
+            android:id="@+id/etUserPercentage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Enter percentage (if applicable)"
+            android:inputType="numberDecimal"
+            android:visibility="gone"/>
+
+        <!-- Custom Split Input -->
+        <EditText
+            android:id="@+id/etUserCustomAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Enter custom amount (if applicable)"
+            android:inputType="numberDecimal"
+            android:visibility="gone"/>
+
         <Button
             android:id="@+id/btnCreateGroup"
             android:layout_width="match_parent"

@@ -143,15 +143,36 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
     // Helper method to get the user's percentage (this could come from a field in the database)
     private double getUserPercentage(String userId) {
-        // For demonstration, assume a simple lookup
-        // Replace with actual logic to get the user's percentage from the database
-        return 20.0; // Example: 20% responsibility
+        double userPercentage = 0.0;
+
+        // Assuming you have a list of `UserPay` objects in your group model
+        if (group.getUsers() != null) {
+            for (UserPay userPay : group.getUsers()) {
+                if (userPay.getUser().getId().equals(userId)) {
+                    userPercentage = userPay.getPercentage(); // Assuming `percentage` is a field in UserPay
+                    break;
+                }
+            }
+        }
+
+        return userPercentage;
     }
 
     // Helper method to get the user's custom amount (could be user input or from the database)
     private double getUserCustomAmount(String userId) {
-        // Replace with logic to get the custom amount the user owes
-        return 50.0; // Example: custom amount that the user owes
+        double userCustomAmount = 0.0;
+
+        // Assuming each user in `UserPay` has a custom amount field
+        if (group.getUsers() != null) {
+            for (UserPay userPay : group.getUsers()) {
+                if (userPay.getUser().getId().equals(userId)) {
+                    userCustomAmount = userPay.getCustomAmount(); // Assuming `customAmount` is a field in UserPay
+                    break;
+                }
+            }
+        }
+
+        return userCustomAmount;
     }
 
     private void displayUserOwedAmount() {
@@ -160,7 +181,17 @@ public class GroupDetailsActivity extends AppCompatActivity {
         if (group.getUsers() != null) {
             for (UserPay userPay : group.getUsers()) {
                 if (userPay.getUser().getId().equals(currentUserId)) {
-                    userShare = userPay.getOwns();
+                    if ("Even Split".equals(splittingMethod)) {
+                        // Split evenly among all participants
+                        userShare = totalAmount / numberOfParticipants;
+                    } else if ("Percentage Split".equals(splittingMethod)) {
+                        // Use the user's percentage responsibility
+                        double userPercentage = getUserPercentage(currentUserId);
+                        userShare = (userPercentage / 100) * totalAmount;
+                    } else if ("Custom Split".equals(splittingMethod)) {
+                        // Use the custom amount the user owes
+                        userShare = getUserCustomAmount(currentUserId);
+                    }
                     break;
                 }
             }

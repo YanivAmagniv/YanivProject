@@ -51,6 +51,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     UserNamAdapter<User> adapter;
     private UserNamAdapter<User> selectedAdapter;
     ArrayList<User> usersSelected = new ArrayList<>();
+    private EditText etUserPercentage;
+    private EditText etUserCustomAmount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +78,27 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
 
         selectedAdapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, usersSelected);
         lvSelectedMembers.setAdapter(selectedAdapter);
+
+        spSplittingMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedMethod = spSplittingMethod.getSelectedItem().toString();
+
+                if (selectedMethod.equals("Percentage-based")) {
+                    etUserPercentage.setVisibility(View.VISIBLE);
+                    etUserCustomAmount.setVisibility(View.GONE);
+                } else if (selectedMethod.equals("Custom Split")) {
+                    etUserCustomAmount.setVisibility(View.VISIBLE);
+                    etUserPercentage.setVisibility(View.GONE);
+                } else {
+                    etUserPercentage.setVisibility(View.GONE);
+                    etUserCustomAmount.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         lvSelectedMembers.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -121,8 +144,11 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         etGroupName = findViewById(R.id.etGroupName);
         lvMembers = findViewById(R.id.lvallMembers);
         btnCreateGroup.setOnClickListener(this);
+
         etTotalAmount = findViewById(R.id.etTotalAmount);
         spSplittingMethod = findViewById(R.id.spSplittingMethod);
+        etUserPercentage = findViewById(R.id.etUserPercentage);
+        etUserCustomAmount = findViewById(R.id.etUserCustomAmount);
 
         cvEventDate = findViewById(R.id.cvEventDate);
         dateTextView = findViewById(R.id.dateTextView);
@@ -131,6 +157,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
             dateTextView.setText(stDate);
         });
     }
+
+
 
     @Override
     public void onClick(View v) {
@@ -145,13 +173,45 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
         stDescription = etDescription.getText().toString().trim();
         stGroupName = etGroupName.getText().toString().trim();
 
-        if (!isValidInput()) {
-            return;
-        }
-        ArrayList<UserPay> userPayList = new ArrayList<>();  // Create a new list to hold UserPay objects
 
         String totalAmountStr = etTotalAmount.getText().toString().trim();
         String selectedSplittingMethod = spSplittingMethod.getSelectedItem().toString();
+
+
+        if (!isValidInput()) {
+            return;
+        }
+
+
+        ArrayList<UserPay> userPayList = new ArrayList<>();
+        double totalAmount = Double.parseDouble(totalAmountStr);
+
+        if (selectedSplittingMethod.equals("Equal Split")) {
+            double equalShare = totalAmount / usersSelected.size();
+            for (User selectedUser : usersSelected) {
+                userPayList.add(new UserPay(selectedUser, equalShare, false));
+            }
+        } else if (selectedSplittingMethod.equals("Percentage-based")) {
+            double totalPercentage = 0.0;
+
+            for (User selectedUser : usersSelected) {
+                double userPercentage = getUserPercentage();
+                double userAmount = totalAmount * (userPercentage / 100);
+                totalPercentage += userPercentage;
+                userPayList.add(new UserPay(selectedUser, userAmount, false));
+            }
+            if (totalPercentage != 100.0) {
+                Toast.makeText(this, "Total percentage must equal 100%", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        } else if (selectedSplittingMethod.equals("Custom Split")) {
+            for (User selectedUser : usersSelected) {
+                double userAmount = getUserCustomAmount();
+                userPayList.add(new UserPay(selectedUser, userAmount, false));
+            }
+        }
+
+
 
         if (totalAmountStr.isEmpty()) {
             etTotalAmount.setError("Total amount is required");
@@ -159,12 +219,9 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
             return;
         }
 
-        double totalAmount = Double.parseDouble(totalAmountStr);
 
-        // Iterate over each selected user and create a UserPay object
-        for (User selectedUser : usersSelected) {
-            userPayList.add(new UserPay(selectedUser, 0.0, false)); // Assuming they owe 0.0 and haven't paid
-        }
+
+
         String groupId = databaseService.generateGroupId();  // Generate a new ID for the group
         // Create a new Group instance
         Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, stSPeventType, user, userPayList, selectedSplittingMethod, totalAmount);
@@ -184,6 +241,18 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
                 Toast.makeText(AddNewEvent.this, "Failed to create event. Try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Get user-entered percentage (default 100 if empty)
+    private double getUserPercentage() {
+        String percentageStr = etUserPercentage.getText().toString().trim();
+        return percentageStr.isEmpty() ? 100.0 : Double.parseDouble(percentageStr);
+    }
+
+    // Get user-entered custom amount (default 0 if empty)
+    private double getUserCustomAmount() {
+        String amountStr = etUserCustomAmount.getText().toString().trim();
+        return amountStr.isEmpty() ? 0.0 : Double.parseDouble(amountStr);
     }
 
     private boolean isValidInput() {
