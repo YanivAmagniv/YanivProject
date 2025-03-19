@@ -285,4 +285,7 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
             selectedAdapter.notifyDataSetChanged();
         }
     }
+    public void goBack(View view) {
+        onBackPressed();  // This will navigate back to the previous activity
+    }
 }

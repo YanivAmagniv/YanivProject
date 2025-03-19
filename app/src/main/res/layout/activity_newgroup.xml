@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -121,12 +120,30 @@
             android:inputType="numberDecimal"
             android:visibility="gone"/>
 
-        <Button
-            android:id="@+id/btnCreateGroup"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="צור קבוצה"/>
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
+
+            <!-- Create Group Button on the left -->
+            <Button
+                android:id="@+id/btnCreateGroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="צור קבוצה" />
+
+            <!-- Back Button on the right -->
+            <Button
+                android:id="@+id/btnBack"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="goBack"
+                android:text="חזור"
+                android:textSize="18sp" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

@@ -2,6 +2,8 @@ package com.example.yanivproject.screens;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -71,7 +73,7 @@ public class ExistentGroup extends AppCompatActivity {
                 unpaidGroups.clear();
 
                 for (Group group : groups) {
-                    boolean isAdmin = group.getAdmin().getId().equals(userId);
+                    boolean isAdmin = group.getAdmin() != null && group.getAdmin().getId().equals(userId);
                     boolean isMember = false;
 
                     if (group.getUsers() != null) {
@@ -108,4 +110,8 @@ public class ExistentGroup extends AppCompatActivity {
         paidAdapter.notifyDataSetChanged();
         unpaidAdapter.notifyDataSetChanged();
     }
+    public void goBack(View view) {
+        onBackPressed();  // This will navigate back to the previous activity
+    }
+
 }

@@ -234,4 +234,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
             });
         }
     }
+    public void goBack(View view) {
+        onBackPressed();  // This will navigate back to the previous activity
+    }
 }

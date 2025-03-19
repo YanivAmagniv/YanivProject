@@ -122,4 +122,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Ad
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
+    public void goBack(View view) {
+        onBackPressed();  // This will navigate back to the previous activity
+    }
 }
