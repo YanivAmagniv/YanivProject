@@ -95,7 +95,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 for (UserPay userPay : group.getUsers()) {
                     User user = userPay.getUser();
                     if (user != null) {
-                        participants.append(user.getFullName()).append("\n");
+                        participants.append(user.getFullName()+ "  "+ userPay.getStatus()).append("\n");
                     } else {
                         participants.append("Unknown User\n");
                     }
