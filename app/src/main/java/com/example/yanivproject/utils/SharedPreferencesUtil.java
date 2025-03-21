@@ -109,6 +109,8 @@ public class SharedPreferencesUtil {
         editor.putString("Fname", user.getFname());
         editor.putString("Lname", user.getLname());
         editor.putString("phone", user.getPhone());
+        editor.putString("city", user.getCity());
+        editor.putBoolean("isAdmin", user.getAdmin());
         editor.apply();
     }
 
@@ -130,8 +132,9 @@ public class SharedPreferencesUtil {
         String lName = sharedPreferences.getString("Lname", "");
         String phone = sharedPreferences.getString("phone", "");
         String city = sharedPreferences.getString("city", "");
+        boolean isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
-        return new User(uid, email, password, fName, lName, phone,city);
+        return new User(uid, email, password, fName, lName, phone,city,isAdmin);
     }
 
     /// Sign out the user by removing user data from shared preferences
@@ -145,6 +148,8 @@ public class SharedPreferencesUtil {
         editor.remove("Fname");
         editor.remove("Lname");
         editor.remove("phone");
+        editor.remove("city");
+        editor.remove("isAdmin");
 
         editor.apply();
     }

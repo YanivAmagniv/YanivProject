@@ -17,6 +17,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.yanivproject.R;
 import com.example.yanivproject.adapters.UserAdapter;
 import com.example.yanivproject.models.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DataSnapshot;
@@ -72,6 +74,25 @@ public class AdminActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable editable) {}
         });
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            finish(); // Close activity if user is not logged in
+            return;
+        }
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+        userRef.get().addOnSuccessListener(snapshot -> {
+            Boolean isAdmin = snapshot.child("isAdmin").getValue(Boolean.class);
+            if (isAdmin == null || !isAdmin) {
+                Toast.makeText(AdminActivity.this, "Access Denied!", Toast.LENGTH_SHORT).show();
+                finish(); // Close the activity if user is not admin
+            }
+        }).addOnFailureListener(e -> finish());
     }
 
     private void fetchAllUsers() {

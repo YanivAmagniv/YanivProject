@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.yanivproject.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class Activity_Groups extends AppCompatActivity {
 
@@ -23,19 +25,28 @@ public class Activity_Groups extends AppCompatActivity {
         setContentView(R.layout.activity_groups);
 
         // Check if the current user is an admin
-        if (isAdmin()) {
-            findViewById(R.id.btnAdminPage).setVisibility(View.VISIBLE); // Show admin button
-        } else {
-            findViewById(R.id.btnAdminPage).setVisibility(View.GONE); // Hide admin button
-        }
+        checkIfAdmin();
+
     }
 
     // Check if the current user is an admin
-    private boolean isAdmin() {
-        // Replace this with actual logic for determining if the user is an admin.
-        // For now, we'll just assume the user is admin if they are logged in.
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        return userId != null && userId.equals("adminUserId"); // Replace with actual admin check
+    private void checkIfAdmin() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+        userRef.get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                Boolean isAdmin = snapshot.child("isAdmin").getValue(Boolean.class);
+                if (isAdmin != null && isAdmin) {
+                    findViewById(R.id.btnAdminPage).setVisibility(View.VISIBLE);
+                } else {
+                    findViewById(R.id.btnAdminPage).setVisibility(View.GONE);
+                }
+            }
+        }).addOnFailureListener(e -> {
+            findViewById(R.id.btnAdminPage).setVisibility(View.GONE);
+        });
     }
 
     public void go_newgroup(View view) {

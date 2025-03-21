@@ -66,6 +66,17 @@
             android:layout_height="wrap_content"
             android:enabled="false"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Admin Status"/>
+
+        <EditText
+            android:id="@+id/etIsAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"/>
+
         <!-- Edit & Save Buttons -->
         <Button
             android:id="@+id/btnEdit"

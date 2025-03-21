@@ -22,7 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class UserDetails extends AppCompatActivity {
-    private EditText etFirstName, etLastName, etPhone, etEmail, etCity, etCurrentPassword, etNewPassword;
+    private EditText etFirstName, etLastName, etPhone, etEmail, etCity, etCurrentPassword, etNewPassword ,etIsAdmin;
     private Button btnEdit, btnUpdate, btnChangePassword;
     private FirebaseAuth auth;
     private FirebaseUser currentUser;
@@ -57,6 +57,8 @@ public class UserDetails extends AppCompatActivity {
         btnEdit = findViewById(R.id.btnEdit);
         btnUpdate = findViewById(R.id.btnUpdate);
         btnChangePassword = findViewById(R.id.btnChangePassword);
+        etIsAdmin = findViewById(R.id.etIsAdmin);
+
 
         // Disable editing by default
         setEditMode(false);
@@ -87,6 +89,7 @@ public class UserDetails extends AppCompatActivity {
                     etLastName.setText(user.getLname());
                     etPhone.setText(user.getPhone());
                     etCity.setText(user.getCity());
+                    etIsAdmin.setText(user.getAdmin() ? "Is Admin" : "Not Admin");
                 }
             }).addOnFailureListener(e -> Toast.makeText(this, "Failed to load user data.", Toast.LENGTH_SHORT).show());
         }
