@@ -120,20 +120,6 @@ public class Register extends AppCompatActivity implements AdapterView.OnItemSel
         }
 
         if (isValid==true) {
-            FirebaseAuth.getInstance().fetchSignInMethodsForEmail(email)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            boolean emailExists = task.getResult().getSignInMethods().size() > 0;
-                            if (emailExists) {
-                                Toast.makeText(Register.this, "Email already in use. Try logging in.", Toast.LENGTH_LONG).show();
-                            } else {
-                                registerUser(email, pass);
-                            }
-                        } else {
-                            Toast.makeText(Register.this, "Error checking email: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    });
-
             authenticationService.signUp(email, pass, new AuthenticationService.AuthCallback<String>() {
                 @Override
                 public void onCompleted(String uid) {
@@ -176,40 +162,6 @@ public class Register extends AppCompatActivity implements AdapterView.OnItemSel
         }
 
     }
-    private void registerUser(String email, String pass) {
-        authenticationService.signUp(email, pass, new AuthenticationService.AuthCallback<String>() {
-            @Override
-            public void onCompleted(String uid) {
-                Log.d("TAG", "createUserWithEmail:success");
-
-                User newUser = new User(uid, fName, lName, phone, email, pass, city, false);
-                databaseService.createNewUser(newUser, new DatabaseService.DatabaseCallback<Void>() {
-                    @Override
-                    public void onCompleted(Void object) {
-                        SharedPreferences.Editor editor = sharedpreferences.edit();
-                        editor.putString("email", email);
-                        editor.putString("password", pass);
-                        editor.apply();
-                        startActivity(new Intent(Register.this, MainActivity.class));
-                    }
-
-                    @Override
-                    public void onFailed(Exception e) {
-                        Log.w("TAG", "createUserWithEmail:failure", e);
-                        Toast.makeText(Register.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                Log.w("TAG", "Authentication failed", e);
-                Toast.makeText(Register.this, "Authentication failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
