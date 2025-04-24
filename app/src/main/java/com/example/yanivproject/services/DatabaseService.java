@@ -228,6 +228,8 @@ public class DatabaseService {
             List<User> users = new ArrayList<>();
             task.getResult().getChildren().forEach(dataSnapshot -> {
                 User user = dataSnapshot.getValue(User.class);
+
+                user=new User(user);
                 Log.d(TAG, "Got user: " + user);
                 users.add(user);
             });

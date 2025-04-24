@@ -233,7 +233,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(AddNewEvent.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-                finish();
+                Intent go = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(go);
             }
 
             @Override
