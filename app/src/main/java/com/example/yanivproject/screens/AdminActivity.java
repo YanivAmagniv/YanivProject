@@ -40,11 +40,7 @@ public class AdminActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_admin);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
 
         // Initialize views
         etSearch = findViewById(R.id.etSearch);
@@ -55,7 +51,7 @@ public class AdminActivity extends AppCompatActivity {
 
         // Initialize user list and adapter
         userList = new ArrayList<>();
-        userAdapter = new UserAdapter(this, R.layout.userraw, R.id.tvfname, userList);
+        userAdapter = new UserAdapter(this, R.layout.user_item, R.id.tvfname, userList);
         userListView.setAdapter(userAdapter);
 
         // Fetch all users from the Firebase database

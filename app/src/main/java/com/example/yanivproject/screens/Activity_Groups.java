@@ -2,8 +2,10 @@ package com.example.yanivproject.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +18,8 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class Activity_Groups extends AppCompatActivity {
 
+    private Button btnAdminPage;
+
 
 
     @Override
@@ -23,6 +27,10 @@ public class Activity_Groups extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_groups);
+
+        btnAdminPage = findViewById(R.id.btnAdminPage);  // Initialize here
+        btnAdminPage.setVisibility(View.GONE); // Default to hidden
+
 
         // Check if the current user is an admin
         checkIfAdmin();
@@ -37,16 +45,18 @@ public class Activity_Groups extends AppCompatActivity {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
         userRef.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
-                Boolean isAdmin = snapshot.child("isAdmin").getValue(Boolean.class);
+                Boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
+                Toast.makeText(this, "isAdmin: " + isAdmin, Toast.LENGTH_SHORT).show();  // 👈 Add this
+
                 if (isAdmin != null && isAdmin) {
-                    findViewById(R.id.btnAdminPage).setVisibility(View.VISIBLE);
+                    btnAdminPage.setVisibility(View.VISIBLE);
                 } else {
-                    findViewById(R.id.btnAdminPage).setVisibility(View.GONE);
+                    btnAdminPage.setVisibility(View.GONE);
                 }
             }
-        }).addOnFailureListener(e -> {
-            findViewById(R.id.btnAdminPage).setVisibility(View.GONE);
-        });
+        }).addOnFailureListener(e -> btnAdminPage.setVisibility(View.GONE));
+        Log.d("AdminCheck", "Current UID: " + currentUser.getUid());
+
     }
 
     public void go_newgroup(View view) {
