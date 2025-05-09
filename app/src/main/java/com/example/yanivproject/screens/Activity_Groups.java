@@ -3,23 +3,34 @@ package com.example.yanivproject.screens;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.yanivproject.R;
+import com.example.yanivproject.models.User;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class Activity_Groups extends AppCompatActivity {
+public class Activity_Groups extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener  {
 
     private Button btnAdminPage;
+    private User currentUser;
+    ActionBarDrawerToggle toggle;
 
+    DrawerLayout drawerLayout;
 
 
     @Override
@@ -30,11 +41,44 @@ public class Activity_Groups extends AppCompatActivity {
 
         btnAdminPage = findViewById(R.id.btnAdminPage);  // Initialize here
         btnAdminPage.setVisibility(View.GONE); // Default to hidden
+        drawerLayout = findViewById(R.id.drawer_layout);
+
 
 
         // Check if the current user is an admin
         checkIfAdmin();
 
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        Menu menu = navigationView.getMenu();
+
+        // Set the listener for navigation item clicks
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                return onNavigationItemSelected(item);
+            }
+        });
+
+        // Enable the hamburger icon
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+// Enable the ActionBar's Up button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+// Optional: Hide admin menu item for non-admins
+
+        if (currentUser != null && !currentUser.getAdmin()) {
+            MenuItem adminItem = menu.findItem(R.id.nav_admin_page);
+            if (adminItem != null) {
+                adminItem.setVisible(false);
+            }
+        }
     }
 
     // Check if the current user is an admin
@@ -57,6 +101,33 @@ public class Activity_Groups extends AppCompatActivity {
         }).addOnFailureListener(e -> btnAdminPage.setVisibility(View.GONE));
         Log.d("AdminCheck", "Current UID: " + currentUser.getUid());
 
+    }
+
+
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.nav_home) {
+            startActivity(new Intent(this, MainActivity.class));
+        } else if (id == R.id.nav_new_group) {
+            startActivity(new Intent(this, AddNewEvent.class));
+        } else if (id == R.id.nav_existent_groups) {
+            startActivity(new Intent(this, ExistentGroup.class));
+        } else if (id == R.id.nav_user_details) {
+            startActivity(new Intent(this, UserDetails.class));
+        } else if (id == R.id.nav_admin_page) {
+            startActivity(new Intent(this, AdminActivity.class));
+        } else if (id == R.id.nav_logout) {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(new Intent(this, Login.class));
+            finish();
+        }
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 
     public void go_newgroup(View view) {

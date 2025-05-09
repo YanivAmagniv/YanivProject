@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:title="מסך ראשי"
+        android:icon="@android:drawable/ic_menu_view" />
+
+    <item
+        android:id="@+id/nav_new_group"
+        android:title="קבוצה חדשה"
+        android:icon="@android:drawable/ic_menu_add" />
+
+    <item
+        android:id="@+id/nav_existent_groups"
+        android:title="קבוצות קיימות"
+        android:icon="@android:drawable/ic_menu_agenda" />
+
+    <item
+        android:id="@+id/nav_user_details"
+        android:title="פרטי משתמש"
+        android:icon="@android:drawable/ic_menu_info_details" />
+
+    <item
+        android:id="@+id/nav_admin_page"
+        android:title="דף מנהל"
+        android:icon="@android:drawable/ic_menu_manage" />
+
+    <item
+        android:id="@+id/nav_logout"
+        android:title="התנתקות"
+        android:icon="@android:drawable/ic_lock_power_off" />
+
+</menu>

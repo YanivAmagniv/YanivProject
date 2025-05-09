@@ -6,44 +6,61 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
-
+import android.widget.Toast;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.User;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
+public class UserAdapter extends ArrayAdapter<User> {
+    private Context context;
+    private List<User> users;
 
-
-public class UserAdapter <P> extends ArrayAdapter<User> {
-    Context context;
-    List<User> objects;
-
-    public  UserAdapter(Context context, int resource, int textViewResourceId, List<User> objects) {
-        super(context, resource, textViewResourceId, objects);
-
-        this.context=context;
-        this.objects=objects;
+    public UserAdapter(Context context, int resource, List<User> users) {
+        super(context, resource, users);
+        this.context = context;
+        this.users = users;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        // Inflate the view
+        if (convertView == null) {
+            LayoutInflater inflater = ((Activity) context).getLayoutInflater();
+            convertView = inflater.inflate(R.layout.user_item, parent, false);
+        }
 
-        LayoutInflater layoutInflater = ((Activity)context).getLayoutInflater();
-        View view = layoutInflater.inflate(R.layout.user_item, parent, false);
+        // Get current user
+        User user = users.get(position);
 
-        TextView tvfname = (TextView)view.findViewById(R.id.tvfname);
-        TextView tvlname = (TextView)view.findViewById(R.id.tvlname);
+        // Set views
+        TextView tvFname = convertView.findViewById(R.id.tvfname);
+        TextView tvLname = convertView.findViewById(R.id.tvlname);
+        TextView tvemail = convertView.findViewById(R.id.tvemail);  // New TextView for email
 
+        Button btnDelete = convertView.findViewById(R.id.btnDeleteUser);
 
-        User temp = objects.get(position);
-        tvfname.setText(temp.getFname()+"");
-        tvlname.setText(temp.getLname()+"");
-        return view;
-    }
+        tvFname.setText(user.getFname());
+        tvLname.setText(user.getLname());
+        tvemail.setText(user.getEmail());
 
-    private View getInflate(ViewGroup parent, LayoutInflater layoutInflater) {
-        return layoutInflater.inflate(R.layout.userraw, parent, false);
+        // Delete user from Firebase
+        btnDelete.setOnClickListener(v -> {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(user.getId());
+            userRef.removeValue().addOnSuccessListener(aVoid -> {
+                users.remove(position);
+                notifyDataSetChanged();
+                Toast.makeText(context, "User deleted", Toast.LENGTH_SHORT).show();
+            }).addOnFailureListener(e -> {
+                Toast.makeText(context, "Delete failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        });
+
+        return convertView;
     }
 }
