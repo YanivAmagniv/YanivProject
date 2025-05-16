@@ -21,8 +21,8 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class UserDetails extends AppCompatActivity {
-    private EditText etFirstName, etLastName, etPhone, etEmail, etCity, etCurrentPassword, etNewPassword ,etIsAdmin;
+public class UserDetails extends NavActivity {
+    private EditText etFirstName, etLastName, etPhone, etEmail, etCity, etCurrentPassword, etNewPassword, etIsAdmin;
     private Button btnEdit, btnUpdate, btnChangePassword;
     private FirebaseAuth auth;
     private FirebaseUser currentUser;
@@ -32,20 +32,22 @@ public class UserDetails extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_user_details);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        setupNavigationDrawer();
 
         // Initialize Firebase
         auth = FirebaseAuth.getInstance();
         currentUser = auth.getCurrentUser();
-        userId = currentUser.getUid(); // Get the logged-in user's ID
+        userId = currentUser.getUid();
         userRef = FirebaseDatabase.getInstance().getReference("Users").child(userId);
 
+        initializeViews();
+        setEditMode(false);
+        loadUserDetails();
+        setupListeners();
+    }
+
+    private void initializeViews() {
         // Initialize UI elements
         etFirstName = findViewById(R.id.etFirstName);
         etLastName = findViewById(R.id.etLastName);
@@ -58,22 +60,18 @@ public class UserDetails extends AppCompatActivity {
         btnUpdate = findViewById(R.id.btnUpdate);
         btnChangePassword = findViewById(R.id.btnChangePassword);
         etIsAdmin = findViewById(R.id.etIsAdmin);
+    }
 
+    // Disable editing by default
+    private void setEditMode(boolean enabled) {
+        etFirstName.setEnabled(enabled);
+        etLastName.setEnabled(enabled);
+        etPhone.setEnabled(enabled);
+        etCity.setEnabled(enabled);
+        etEmail.setEnabled(false); // Email should only be changed via Firebase Auth
 
-        // Disable editing by default
-        setEditMode(false);
-
-        // Load user details
-        loadUserDetails();
-
-        // Edit button - Enables editing
-        btnEdit.setOnClickListener(v -> setEditMode(true));
-
-        // Save button - Updates user details
-        btnUpdate.setOnClickListener(v -> updateUserData());
-
-        // Change Password button
-        btnChangePassword.setOnClickListener(v -> changeUserPassword());
+        btnEdit.setVisibility(enabled ? View.GONE : View.VISIBLE);
+        btnUpdate.setVisibility(enabled ? View.VISIBLE : View.GONE);
     }
 
     // Load user details into the EditText fields
@@ -95,16 +93,15 @@ public class UserDetails extends AppCompatActivity {
         }
     }
 
-    // Enable or disable editing
-    private void setEditMode(boolean enabled) {
-        etFirstName.setEnabled(enabled);
-        etLastName.setEnabled(enabled);
-        etPhone.setEnabled(enabled);
-        etCity.setEnabled(enabled);
-        etEmail.setEnabled(false); // Email should only be changed via Firebase Auth
+    private void setupListeners() {
+        // Edit button - Enables editing
+        btnEdit.setOnClickListener(v -> setEditMode(true));
 
-        btnEdit.setVisibility(enabled ? View.GONE : View.VISIBLE);
-        btnUpdate.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        // Save button - Updates user details
+        btnUpdate.setOnClickListener(v -> updateUserData());
+
+        // Change Password button
+        btnChangePassword.setOnClickListener(v -> changeUserPassword());
     }
 
     // Update user details in Firebase
@@ -166,6 +163,7 @@ public class UserDetails extends AppCompatActivity {
             Toast.makeText(UserDetails.this, "Reauthentication failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
+
     public void goBack(View view) {
         onBackPressed();  // This will navigate back to the previous activity
     }

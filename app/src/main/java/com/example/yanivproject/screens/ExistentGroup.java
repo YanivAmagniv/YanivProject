@@ -22,7 +22,7 @@ import com.example.yanivproject.services.DatabaseService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExistentGroup extends AppCompatActivity {
+public class ExistentGroup extends NavActivity {
     DatabaseService databaseService;
     RecyclerView rvPaidGroups, rvUnpaidGroups;
 
@@ -34,8 +34,8 @@ public class ExistentGroup extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_existent_group);  // Ensure this matches your layout file name
+        setContentView(R.layout.activity_existent_group);
+        setupNavigationDrawer();
 
         // Set up window insets for edge-to-edge support
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

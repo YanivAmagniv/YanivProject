@@ -29,7 +29,7 @@ import com.example.yanivproject.services.DatabaseService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddNewEvent extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class AddNewEvent extends NavActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
     Spinner spCurrency, spEventType;
     CalendarView cvEventDate;
     TextView dateTextView;
@@ -57,8 +57,8 @@ public class AddNewEvent extends AppCompatActivity implements View.OnClickListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_newgroup);
+        setupNavigationDrawer();
 
         databaseService = DatabaseService.getInstance();
         authenticationService = AuthenticationService.getInstance();

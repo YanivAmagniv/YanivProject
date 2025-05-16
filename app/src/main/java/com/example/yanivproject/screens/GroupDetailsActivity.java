@@ -25,7 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
-public class GroupDetailsActivity extends AppCompatActivity {
+public class GroupDetailsActivity extends NavActivity {
     private TextView groupNameText, groupDescriptionText, groupDateText, groupTypeText, groupTotalAmountText, groupParticipantsText, groupStatusText;
     private Button deleteButton, editStatusButton;
     private Group group;
@@ -43,6 +43,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
+        setupNavigationDrawer();
 
         // Initialize Views
         groupNameText = findViewById(R.id.group_name);
@@ -128,7 +129,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
     // Utility method to format currency
     private String getSplittingMethod(double amount) {
-        return String.format("$%.2f", amount);
+        return String.format(Locale.US, "$%.2f", amount);
     }
 
     // Helper method to get the user's percentage (this could come from a field in the database)
@@ -200,7 +201,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     }
 
     private String getCurrencyString(double totalAmount) {
-        return String.format("$%.2f", totalAmount);
+        return String.format(Locale.US, "$%.2f", totalAmount);
     }
 
     private void deleteGroup() {

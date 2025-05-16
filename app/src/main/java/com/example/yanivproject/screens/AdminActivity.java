@@ -16,7 +16,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdminActivity extends AppCompatActivity {
+public class AdminActivity extends NavActivity {
 
     private ListView userListView;
     private List<User> userList;
@@ -26,7 +26,8 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_admin); // Make sure your layout file is named correctly
+        setContentView(R.layout.activity_admin);
+        setupNavigationDrawer();
 
         // Initialize views and Firebase reference
         userListView = findViewById(R.id.userListView);

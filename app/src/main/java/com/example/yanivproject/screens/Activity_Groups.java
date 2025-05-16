@@ -13,6 +13,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -24,26 +25,27 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-public class Activity_Groups extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener  {
+public class Activity_Groups extends NavActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private Button btnAdminPage;
     private User currentUser;
-    ActionBarDrawerToggle toggle;
-
-    DrawerLayout drawerLayout;
-
+    private ActionBarDrawerToggle toggle;
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_groups);
+        setupNavigationDrawer();
 
-        btnAdminPage = findViewById(R.id.btnAdminPage);  // Initialize here
+        // Set up the Toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        btnAdminPage = findViewById(R.id.btnAdminPage);
         btnAdminPage.setVisibility(View.GONE); // Default to hidden
         drawerLayout = findViewById(R.id.drawer_layout);
-
-
 
         // Check if the current user is an admin
         checkIfAdmin();
@@ -52,27 +54,34 @@ public class Activity_Groups extends AppCompatActivity implements NavigationView
         navigationView.setNavigationItemSelectedListener(this);
         Menu menu = navigationView.getMenu();
 
-        // Set the listener for navigation item clicks
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+        // Set up the navigation drawer toggle
+        toggle = new ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close
+        ) {
             @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                return onNavigationItemSelected(item);
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                invalidateOptionsMenu();
             }
-        });
 
-        // Enable the hamburger icon
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                invalidateOptionsMenu();
+            }
+        };
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-// Enable the ActionBar's Up button
+        // Make sure these lines are here
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
-
-// Optional: Hide admin menu item for non-admins
-
+        // Optional: Hide admin menu item for non-admins
         if (currentUser != null && !currentUser.getAdmin()) {
             MenuItem adminItem = menu.findItem(R.id.nav_admin_page);
             if (adminItem != null) {
@@ -90,8 +99,6 @@ public class Activity_Groups extends AppCompatActivity implements NavigationView
         userRef.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 Boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
-                Toast.makeText(this, "isAdmin: " + isAdmin, Toast.LENGTH_SHORT).show();  // 👈 Add this
-
                 if (isAdmin != null && isAdmin) {
                     btnAdminPage.setVisibility(View.VISIBLE);
                 } else {
@@ -100,10 +107,7 @@ public class Activity_Groups extends AppCompatActivity implements NavigationView
             }
         }).addOnFailureListener(e -> btnAdminPage.setVisibility(View.GONE));
         Log.d("AdminCheck", "Current UID: " + currentUser.getUid());
-
     }
-
-
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -125,32 +129,43 @@ public class Activity_Groups extends AppCompatActivity implements NavigationView
             finish();
         }
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (toggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        }
+    }
+
+    // Button click handlers
     public void go_newgroup(View view) {
-        Intent go = new Intent(getApplicationContext(), AddNewEvent.class);
-        startActivity(go);
+        startActivity(new Intent(this, AddNewEvent.class));
     }
 
     public void go_ExistentGroup(View v) {
-        Intent go = new Intent(getApplicationContext(), ExistentGroup.class);
-        startActivity(go);
+        startActivity(new Intent(this, ExistentGroup.class));
     }
 
-
     public void go_UserDetails(View view) {
-        Intent go = new Intent(getApplicationContext(), UserDetails.class);
-        startActivity(go);
+        startActivity(new Intent(this, UserDetails.class));
     }
 
     public void goAdminPage(View view) {
-        Intent intent = new Intent(getApplicationContext(), AdminActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, AdminActivity.class));
     }
+
     public void goBack(View view) {
-        onBackPressed();  // This will navigate back to the previous activity
+        onBackPressed();
     }
 }
