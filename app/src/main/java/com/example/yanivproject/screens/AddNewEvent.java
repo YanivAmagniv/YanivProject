@@ -2,57 +2,57 @@ package com.example.yanivproject.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.AutoCompleteTextView;
 import android.widget.CalendarView;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.yanivproject.R;
-import com.example.yanivproject.adapters.UserNamAdapter;
-import com.example.yanivproject.models.Group;  // Updated import
+import com.example.yanivproject.adapters.UserAmountAdapter;
+import com.example.yanivproject.adapters.UserSelectionAdapter;
+import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
 import com.example.yanivproject.services.AuthenticationService;
 import com.example.yanivproject.services.DatabaseService;
-
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddNewEvent extends NavActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
-    Spinner spCurrency, spEventType;
-    CalendarView cvEventDate;
-    TextView dateTextView;
-    EditText etTotalAmount;
-    Spinner spSplittingMethod;
-    String stDate;
+public class AddNewEvent extends NavActivity implements View.OnClickListener {
+    private AutoCompleteTextView spCurrency, spEventType, spSplittingMethod;
+    private CalendarView cvEventDate;
+    private TextView dateTextView;
+    private TextInputEditText etTotalAmount;
+    private String stDate;
 
-    EditText etGroupName, etDescription;
-    String stGroupName, stDescription, stSPcurrency, stSPeventType;
+    private TextInputEditText etGroupName, etDescription;
+    private String stGroupName, stDescription, stSPcurrency, stSPeventType;
 
-    Button btnCreateGroup;
-    DatabaseService databaseService;
+    private MaterialButton btnCreateGroup, btnBack;
+    private DatabaseService databaseService;
     private AuthenticationService authenticationService;
     private String uid;
 
-    User user;
-    ListView lvMembers, lvSelectedMembers;
-    ArrayList<User> users = new ArrayList<>();
-    UserNamAdapter<User> adapter;
-    private UserNamAdapter<User> selectedAdapter;
-    ArrayList<User> usersSelected = new ArrayList<>();
-    private EditText etUserPercentage;
-    private EditText etUserCustomAmount;
+    private User user;
+    private ArrayList<User> usersSelected = new ArrayList<>();
+    
+    private RecyclerView rvUserAmounts, rvParticipants;
+    private UserAmountAdapter userAmountAdapter;
+    private UserSelectionAdapter userSelectionAdapter;
+    private TextView tvSplitExplanation, tvTotalSplit;
+    private double totalAmount = 0.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,61 +65,159 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener, Ad
         uid = authenticationService.getCurrentUserId();
 
         initViews();
+        setupAdapters();
+        setupListeners();
+        loadUsers();
+    }
 
-        users = new ArrayList<>();
-        adapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, users);
-        lvMembers.setAdapter(adapter);
-        lvMembers.setOnItemClickListener(this);
+    private void initViews() {
+        btnCreateGroup = findViewById(R.id.btnCreateGroup);
+        btnBack = findViewById(R.id.btnBack);
+        spCurrency = findViewById(R.id.spCurrency);
+        spEventType = findViewById(R.id.spEventType);
+        etDescription = findViewById(R.id.etDescription);
+        etGroupName = findViewById(R.id.etGroupName);
+        etTotalAmount = findViewById(R.id.etTotalAmount);
+        spSplittingMethod = findViewById(R.id.spSplittingMethod);
+        rvUserAmounts = findViewById(R.id.rvUserAmounts);
+        rvParticipants = findViewById(R.id.rvParticipants);
+        cvEventDate = findViewById(R.id.cvEventDate);
+        dateTextView = findViewById(R.id.dateTextView);
+        tvSplitExplanation = findViewById(R.id.tvSplitExplanation);
+        tvTotalSplit = findViewById(R.id.tvTotalSplit);
 
-        String[] splittingMethods = {"Equal Split", "Percentage-based", "Custom Split"};
-        ArrayAdapter<String> splitAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, splittingMethods);
-        splitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        btnCreateGroup.setOnClickListener(this);
+        btnBack.setOnClickListener(v -> onBackPressed());
+    }
+
+    private void setupAdapters() {
+        // Setup spinners
+        setupSpinners();
+
+        // Setup RecyclerViews
+        rvParticipants.setLayoutManager(new LinearLayoutManager(this));
+        userSelectionAdapter = new UserSelectionAdapter();
+        userSelectionAdapter.setOnUserSelectionChangedListener(selectedUsers -> {
+            usersSelected.clear();
+            usersSelected.addAll(selectedUsers);
+            updateUserAmountsList();
+        });
+        rvParticipants.setAdapter(userSelectionAdapter);
+
+        rvUserAmounts.setLayoutManager(new LinearLayoutManager(this));
+        userAmountAdapter = new UserAmountAdapter();
+        userAmountAdapter.setOnAmountChangedListener((currentTotal, remaining) -> {
+            tvTotalSplit.setVisibility(View.VISIBLE);
+            if (Math.abs(remaining) < 0.01) {
+                tvTotalSplit.setText(String.format("סה״כ: ₪%.2f", currentTotal));
+                tvTotalSplit.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            } else {
+                tvTotalSplit.setText(String.format("סה״כ: ₪%.2f (נותר: ₪%.2f)", currentTotal, remaining));
+                tvTotalSplit.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            }
+        });
+        rvUserAmounts.setAdapter(userAmountAdapter);
+    }
+
+    private void setupSpinners() {
+        // Currency spinner
+        ArrayAdapter<CharSequence> currencyAdapter = ArrayAdapter.createFromResource(
+                this, R.array.currencyArr, android.R.layout.simple_dropdown_item_1line);
+        spCurrency.setAdapter(currencyAdapter);
+
+        // Event type spinner
+        ArrayAdapter<CharSequence> eventTypeAdapter = ArrayAdapter.createFromResource(
+                this, R.array.typeOfEventArr, android.R.layout.simple_dropdown_item_1line);
+        spEventType.setAdapter(eventTypeAdapter);
+
+        // Splitting method spinner
+        String[] splittingMethods = {"חלוקה שווה", "חלוקה לפי אחוזים", "חלוקה מותאמת אישית"};
+        ArrayAdapter<String> splitAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_dropdown_item_1line, splittingMethods);
         spSplittingMethod.setAdapter(splitAdapter);
+    }
 
-        selectedAdapter = new UserNamAdapter<>(AddNewEvent.this, 0, 0, usersSelected);
-        lvSelectedMembers.setAdapter(selectedAdapter);
+    private void setupListeners() {
+        cvEventDate.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            stDate = year + "-" + (month + 1) + "-" + dayOfMonth;
+            dateTextView.setText(stDate);
+        });
 
-        spSplittingMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spSplittingMethod.setOnItemClickListener((parent, view, position, id) -> {
+            String method = spSplittingMethod.getText().toString();
+            updateSplitExplanation(method);
+            updateUserAmountsList();
+        });
+
+        etTotalAmount.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedMethod = spSplittingMethod.getSelectedItem().toString();
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-                if (selectedMethod.equals("Percentage-based")) {
-                    etUserPercentage.setVisibility(View.VISIBLE);
-                    etUserCustomAmount.setVisibility(View.GONE);
-                } else if (selectedMethod.equals("Custom Split")) {
-                    etUserCustomAmount.setVisibility(View.VISIBLE);
-                    etUserPercentage.setVisibility(View.GONE);
-                } else {
-                    etUserPercentage.setVisibility(View.GONE);
-                    etUserCustomAmount.setVisibility(View.GONE);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    totalAmount = s.length() > 0 ? Double.parseDouble(s.toString()) : 0.0;
+                    updateUserAmountsList();
+                } catch (NumberFormatException e) {
+                    etTotalAmount.setError("נא להזין מספר תקין");
                 }
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
         });
+    }
 
-        lvSelectedMembers.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                User selectedUser = usersSelected.get(position);
-                usersSelected.remove(selectedUser);
-                selectedAdapter.notifyDataSetChanged();
-            }
-        });
+    private void updateSplitExplanation(String method) {
+        tvSplitExplanation.setVisibility(View.VISIBLE);
+        switch (method) {
+            case "חלוקה שווה":
+                tvSplitExplanation.setText("הסכום יתחלק שווה בשווה בין כל המשתתפים");
+                break;
+            case "חלוקה לפי אחוזים":
+                tvSplitExplanation.setText("הזן אחוז עבור כל משתתף (סה״כ חייב להיות 100%)");
+                break;
+            case "חלוקה מותאמת אישית":
+                tvSplitExplanation.setText("הזן סכום ספציפי עבור כל משתתף");
+                break;
+        }
+    }
 
+    private void updateUserAmountsList() {
+        if (usersSelected.isEmpty() || totalAmount <= 0) {
+            rvUserAmounts.setVisibility(View.GONE);
+            tvTotalSplit.setVisibility(View.GONE);
+            return;
+        }
+
+        String splitMethod = spSplittingMethod.getText().toString();
+        userAmountAdapter.updateUsers(usersSelected, totalAmount, splitMethod);
+        rvUserAmounts.setVisibility(View.VISIBLE);
+        
+        updateTotalDisplay();
+    }
+
+    private void updateTotalDisplay() {
+        double currentTotal = userAmountAdapter.getCurrentTotal();
+        double remaining = totalAmount - currentTotal;
+        tvTotalSplit.setVisibility(View.VISIBLE);
+        tvTotalSplit.setText(String.format("סה״כ: ₪%.2f (נותר: ₪%.2f)", currentTotal, remaining));
+        tvTotalSplit.setTextColor(Math.abs(remaining) < 0.01 ? 
+            getResources().getColor(android.R.color.holo_green_dark) : 
+            getResources().getColor(android.R.color.holo_red_dark));
+    }
+
+    private void loadUsers() {
         databaseService.getUsers(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
-            public void onCompleted(List<User> object) {
-                users.clear();
-                users.addAll(object);
-                adapter.notifyDataSetChanged();
+            public void onCompleted(List<User> users) {
+                userSelectionAdapter.updateUsers(users);
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e("TAG", "onFailed: ", e);
+                Log.e("TAG", "Failed to load users: ", e);
+                Toast.makeText(AddNewEvent.this, "שגיאה בטעינת משתמשים", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -131,162 +229,88 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener, Ad
 
             @Override
             public void onFailed(Exception e) {
+                Log.e("TAG", "Failed to load current user: ", e);
             }
         });
     }
-
-    private void initViews() {
-        btnCreateGroup = findViewById(R.id.btnCreateGroup);
-        lvSelectedMembers = findViewById(R.id.lvSelectedMembers);
-        spCurrency = findViewById(R.id.spCurrency);
-        spEventType = findViewById(R.id.spEventType);
-        etDescription = findViewById(R.id.etDescription);
-        etGroupName = findViewById(R.id.etGroupName);
-        lvMembers = findViewById(R.id.lvallMembers);
-        btnCreateGroup.setOnClickListener(this);
-
-        etTotalAmount = findViewById(R.id.etTotalAmount);
-        spSplittingMethod = findViewById(R.id.spSplittingMethod);
-        etUserPercentage = findViewById(R.id.etUserPercentage);
-        etUserCustomAmount = findViewById(R.id.etUserCustomAmount);
-
-        cvEventDate = findViewById(R.id.cvEventDate);
-        dateTextView = findViewById(R.id.dateTextView);
-        cvEventDate.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            stDate = year + "-" + (month + 1) + "-" + dayOfMonth;
-            dateTextView.setText(stDate);
-        });
-    }
-
-
 
     @Override
     public void onClick(View v) {
         if (v == btnCreateGroup) {
-            addGroupToDatabase();  // Updated method call
+            if (validateInput()) {
+                createNewGroup();
+            }
         }
     }
 
-    private void addGroupToDatabase() {
-        stSPcurrency = spCurrency.getSelectedItem().toString();
-        stSPeventType = spEventType.getSelectedItem().toString();
-        stDescription = etDescription.getText().toString().trim();
+    private boolean validateInput() {
         stGroupName = etGroupName.getText().toString().trim();
-
-
+        stDescription = etDescription.getText().toString().trim();
+        stSPcurrency = spCurrency.getText().toString();
+        stSPeventType = spEventType.getText().toString();
         String totalAmountStr = etTotalAmount.getText().toString().trim();
-        String selectedSplittingMethod = spSplittingMethod.getSelectedItem().toString();
 
-
-        if (!isValidInput()) {
-            return;
-        }
-
-
-        ArrayList<UserPay> userPayList = new ArrayList<>();
-        double totalAmount = Double.parseDouble(totalAmountStr);
-
-        if (selectedSplittingMethod.equals("Equal Split")) {
-            double equalShare = totalAmount / usersSelected.size();
-            for (User selectedUser : usersSelected) {
-                userPayList.add(new UserPay(selectedUser, equalShare, false, 0.0, 0.0));
-            }
-        } else if (selectedSplittingMethod.equals("Percentage-based")) {
-            double totalPercentage = 0.0;
-
-            for (User selectedUser : usersSelected) {
-                double userPercentage = getUserPercentage();
-                double userAmount = totalAmount * (userPercentage / 100);
-                totalPercentage += userPercentage;
-                userPayList.add(new UserPay(selectedUser, userAmount, false, userPercentage, 0.0));
-            }
-            if (totalPercentage != 100.0) {
-                Toast.makeText(this, "Total percentage must equal 100%", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        } else if (selectedSplittingMethod.equals("Custom Split")) {
-            for (User selectedUser : usersSelected) {
-                double userAmount = getUserCustomAmount();
-                userPayList.add(new UserPay(selectedUser, userAmount, false, 0.0, userAmount));
-            }
-        }
-
-
-
-        if (totalAmountStr.isEmpty()) {
-            etTotalAmount.setError("Total amount is required");
-            etTotalAmount.requestFocus();
-            return;
-        }
-
-
-
-
-        String groupId = databaseService.generateGroupId();  // Generate a new ID for the group
-        // Create a new Group instance
-        Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, stSPeventType, user, userPayList, selectedSplittingMethod, totalAmount);
-
-
-
-
-        databaseService.createNewGroup(group, new DatabaseService.DatabaseCallback<Void>() {
-            @Override
-            public void onCompleted(Void object) {
-                Toast.makeText(AddNewEvent.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-                Intent go = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(go);
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                Toast.makeText(AddNewEvent.this, "Failed to create event. Try again.", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    // Get user-entered percentage (default 100 if empty)
-    private double getUserPercentage() {
-        String percentageStr = etUserPercentage.getText().toString().trim();
-        return percentageStr.isEmpty() ? 100.0 : Double.parseDouble(percentageStr);
-    }
-
-    // Get user-entered custom amount (default 0 if empty)
-    private double getUserCustomAmount() {
-        String amountStr = etUserCustomAmount.getText().toString().trim();
-        return amountStr.isEmpty() ? 0.0 : Double.parseDouble(amountStr);
-    }
-
-    private boolean isValidInput() {
         if (stGroupName.isEmpty()) {
-            etGroupName.setError("Group name is required");
+            etGroupName.setError("נא להזין שם קבוצה");
             etGroupName.requestFocus();
             return false;
         }
         if (stDescription.isEmpty()) {
-            etDescription.setError("Description is required");
+            etDescription.setError("נא להזין תיאור");
             etDescription.requestFocus();
             return false;
         }
         if (stDate == null || stDate.isEmpty()) {
-            Toast.makeText(this, "Please select a date", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "נא לבחור תאריך", Toast.LENGTH_SHORT).show();
+            cvEventDate.requestFocus();
             return false;
         }
         if (usersSelected.isEmpty()) {
-            Toast.makeText(this, "Please select at least one member", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "נא לבחור לפחות משתתף אחד", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (totalAmountStr.isEmpty()) {
+            etTotalAmount.setError("נא להזין סכום");
+            etTotalAmount.requestFocus();
+            return false;
+        }
+        if (spSplittingMethod.getText().toString().isEmpty()) {
+            spSplittingMethod.setError("נא לבחור שיטת חלוקה");
+            spSplittingMethod.requestFocus();
+            return false;
+        }
+        if (!userAmountAdapter.validateTotalAmount()) {
+            double currentTotal = userAmountAdapter.getCurrentTotal();
+            double diff = Math.abs(totalAmount - currentTotal);
+            Toast.makeText(this, 
+                String.format("סכום החלוקה אינו תואם לסכום הכולל (הפרש: ₪%.2f)", diff), 
+                Toast.LENGTH_LONG).show();
             return false;
         }
         return true;
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        User selectedUser = (User) parent.getItemAtPosition(position);
-        if (!usersSelected.contains(selectedUser)) {
-            usersSelected.add(selectedUser);
-            selectedAdapter.notifyDataSetChanged();
-        }
-    }
-    public void goBack(View view) {
-        onBackPressed();  // This will navigate back to the previous activity
+    private void createNewGroup() {
+        double totalAmount = Double.parseDouble(etTotalAmount.getText().toString().trim());
+        ArrayList<UserPay> userPayList = userAmountAdapter.getUserPayList();
+        
+        String groupId = databaseService.generateGroupId();
+        Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, 
+                stSPeventType, user, userPayList, spSplittingMethod.getText().toString(), totalAmount);
+
+        databaseService.createNewGroup(group, new DatabaseService.DatabaseCallback<Void>() {
+            @Override
+            public void onCompleted(Void object) {
+                Toast.makeText(AddNewEvent.this, "הקבוצה נוצרה בהצלחה!", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                finish();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(AddNewEvent.this, "שגיאה ביצירת הקבוצה. נסה שוב.", Toast.LENGTH_SHORT).show();
+                Log.e("TAG", "Failed to create group: ", e);
+            }
+        });
     }
 }

@@ -1,5 +1,6 @@
 package com.example.yanivproject.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -9,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.yanivproject.R;
 import com.example.yanivproject.adapters.UserAdapter;
 import com.example.yanivproject.models.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -22,23 +25,52 @@ public class AdminActivity extends NavActivity {
     private List<User> userList;
     private UserAdapter adapter;
     private DatabaseReference usersRef;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_admin);
-        setupNavigationDrawer();
+        
+        // Check if user is admin before showing the activity
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "יש להתחבר תחילה", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
 
-        // Initialize views and Firebase reference
-        userListView = findViewById(R.id.userListView);
-        userList = new ArrayList<>();
-        adapter = new UserAdapter(this, R.layout.user_item, userList);
-        userListView.setAdapter(adapter);
+        // Check admin status in database
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+        userRef.get().addOnSuccessListener(snapshot -> {
+            User user = snapshot.getValue(User.class);
+            if (user == null || !user.getAdmin()) {
+                Toast.makeText(this, "גישה למנהלים בלבד", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+                return;
+            }
+            
+            // User is admin, continue with activity setup
+            setContentView(R.layout.activity_admin);
+            setupNavigationDrawer();
 
-        usersRef = FirebaseDatabase.getInstance().getReference("Users");
+            // Initialize views and Firebase reference
+            userListView = findViewById(R.id.userListView);
+            userList = new ArrayList<>();
+            adapter = new UserAdapter(this, R.layout.user_item, userList);
+            userListView.setAdapter(adapter);
 
-        // Fetch all users
-        fetchAllUsers();
+            usersRef = FirebaseDatabase.getInstance().getReference("Users");
+
+            // Fetch all users
+            fetchAllUsers();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "שגיאה בטעינת פרטי משתמש", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        });
     }
 
     private void fetchAllUsers() {
@@ -50,7 +82,7 @@ public class AdminActivity extends NavActivity {
                     userList.add(user);
                 }
             }
-            adapter.notifyDataSetChanged(); // Safe to call now
+            adapter.notifyDataSetChanged();
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Failed to fetch users", Toast.LENGTH_SHORT).show();
         });

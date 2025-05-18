@@ -106,10 +106,9 @@ public class SharedPreferencesUtil {
         editor.putString("Id", user.getId());
         editor.putString("email", user.getEmail());
         editor.putString("password", user.getPassword());
-        editor.putString("Fname", user.getFname());
-        editor.putString("Lname", user.getLname());
+        editor.putString("fname", user.getFname());
+        editor.putString("lname", user.getLname());
         editor.putString("phone", user.getPhone());
-        editor.putString("city", user.getCity());
         editor.putBoolean("isAdmin", user.getAdmin());
         editor.apply();
     }
@@ -128,13 +127,12 @@ public class SharedPreferencesUtil {
         String uid = sharedPreferences.getString("Id", "");
         String email = sharedPreferences.getString("email", "");
         String password = sharedPreferences.getString("password", "");
-        String fName = sharedPreferences.getString("Fname", "");
-        String lName = sharedPreferences.getString("Lname", "");
+        String fName = sharedPreferences.getString("fname", "");
+        String lName = sharedPreferences.getString("lname", "");
         String phone = sharedPreferences.getString("phone", "");
-        String city = sharedPreferences.getString("city", "");
-        boolean isAdmin = sharedPreferences.getBoolean("isAdmin", false);
+        Boolean isAdmin = sharedPreferences.getBoolean("isAdmin", false);
 
-        return new User(uid, email, password, fName, lName, phone,city,isAdmin);
+        return new User(uid, email, password, fName, lName, phone, isAdmin);
     }
 
     /// Sign out the user by removing user data from shared preferences
@@ -145,10 +143,9 @@ public class SharedPreferencesUtil {
         editor.remove("Id");
         editor.remove("email");
         editor.remove("password");
-        editor.remove("Fname");
-        editor.remove("Lname");
+        editor.remove("fname");
+        editor.remove("lname");
         editor.remove("phone");
-        editor.remove("city");
         editor.remove("isAdmin");
 
         editor.apply();

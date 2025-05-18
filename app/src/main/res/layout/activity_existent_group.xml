@@ -19,53 +19,34 @@
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/main"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:padding="16dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/noGroupsText"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Unpaid Groups"
+                android:text="אין קבוצות להצגה"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                android:paddingBottom="8dp"/>
+                android:gravity="center"
+                android:visibility="gone"/>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvUnpaidGroups"
+                android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                android:nestedScrollingEnabled="false"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Paid Groups"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:paddingTop="16dp"
-                android:paddingBottom="8dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPaidGroups"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:nestedScrollingEnabled="false"/>
+                android:layout_weight="1"/>
 
             <Button
-                android:id="@+id/btnBack"
+                android:id="@+id/addGroupButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="חזור"
-                android:textSize="18sp"
-                android:layout_marginTop="16dp"
-                android:onClick="goBack"
-                 />
+                android:text="הוסף קבוצה חדשה"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"/>
 
         </LinearLayout>
 

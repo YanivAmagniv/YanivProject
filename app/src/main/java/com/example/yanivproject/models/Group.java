@@ -1,7 +1,7 @@
 package com.example.yanivproject.models;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.List;
 
 public class Group implements Serializable {
     private static final long serialVersionUID = 1L;  // Optional
@@ -12,26 +12,26 @@ public class Group implements Serializable {
     private String eventDate;
     private String groupDescription;
     private String type;
-    private User admin;
-    private ArrayList<UserPay> users;
-    private String splittingMethod;
+    private User creator;
+    private List<UserPay> userPayList;
+    private String splitMethod;
     private double totalAmount;
 
     // No-argument constructor (required by Firebase for deserialization)
     public Group() {
-        this.users = new ArrayList<>();  // Initialize the list to avoid null
+        // Required empty constructor for Firebase
     }
 
-    public Group(String groupId, String groupName, String status, String eventDate, String groupDescription, String type, User admin, ArrayList<UserPay> users, String splittingMethod, double totalAmount) {
+    public Group(String groupId, String groupName, String status, String eventDate, String groupDescription, String type, User creator, List<UserPay> userPayList, String splitMethod, double totalAmount) {
         this.groupId = groupId;
         this.groupName = groupName;
         this.status = status;
         this.eventDate = eventDate;
         this.groupDescription = groupDescription;
         this.type = type;
-        this.admin = admin;
-        this.users = (users != null) ? users : new ArrayList<>();  // Ensure it's never null
-        this.splittingMethod = splittingMethod;
+        this.creator = creator;
+        this.userPayList = userPayList;
+        this.splitMethod = splitMethod;
         this.totalAmount = totalAmount;
     }
 
@@ -83,28 +83,28 @@ public class Group implements Serializable {
         this.type = type;
     }
 
-    public User getAdmin() {
-        return admin;
+    public User getCreator() {
+        return creator;
     }
 
-    public void setAdmin(User admin) {
-        this.admin = admin;
+    public void setCreator(User creator) {
+        this.creator = creator;
     }
 
-    public ArrayList<UserPay> getUsers() {
-        return users;
+    public List<UserPay> getUserPayList() {
+        return userPayList;
     }
 
-    public void setUsers(ArrayList<UserPay> users) {
-        this.users = users;
+    public void setUserPayList(List<UserPay> userPayList) {
+        this.userPayList = userPayList;
     }
 
-    public String getSplittingMethod() {
-        return splittingMethod;
+    public String getSplitMethod() {
+        return splitMethod;
     }
 
-    public void setSplittingMethod(String splittingMethod) {
-        this.splittingMethod = splittingMethod;
+    public void setSplitMethod(String splitMethod) {
+        this.splitMethod = splitMethod;
     }
 
     public double getTotalAmount() {
@@ -124,9 +124,9 @@ public class Group implements Serializable {
                 ", eventDate='" + eventDate + '\'' +
                 ", groupDescription='" + groupDescription + '\'' +
                 ", type='" + type + '\'' +
-                ", admin=" + admin +
-                ", users=" + users +
-                ", splittingMethod=" + splittingMethod +
+                ", creator=" + creator +
+                ", userPayList=" + userPayList +
+                ", splitMethod='" + splitMethod + '\'' +
                 ", totalAmount=" + totalAmount +
                 '}';
     }

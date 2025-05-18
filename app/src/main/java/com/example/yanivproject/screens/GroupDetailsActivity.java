@@ -92,17 +92,11 @@ public class GroupDetailsActivity extends NavActivity {
 
             // Prepare participant names
             StringBuilder participants = new StringBuilder();
-            if (group.getUsers() != null) {
-                for (UserPay userPay : group.getUsers()) {
-                    User user = userPay.getUser();
-                    if (user != null) {
-                        participants.append(user.getFullName()+ "  "+ userPay.getStatus()).append("\n");
-                    } else {
-                        participants.append("Unknown User\n");
-                    }
-                }
-            } else {
-                participants.append("No participants available");
+            for (UserPay userPay : group.getUserPayList()) {
+                participants.append(userPay.getUser().getName())
+                          .append("  ")
+                          .append(userPay.isPaid() ? "שולם" : "לא שולם")
+                          .append("\n");
             }
             groupParticipantsText.setText(participants.toString());
 
@@ -132,68 +126,29 @@ public class GroupDetailsActivity extends NavActivity {
         return String.format(Locale.US, "$%.2f", amount);
     }
 
-    // Helper method to get the user's percentage (this could come from a field in the database)
-    private double getUserPercentage(String userId) {
-        double userPercentage = 0.0;
-
-        // Assuming you have a list of `UserPay` objects in your group model
-        if (group.getUsers() != null) {
-            for (UserPay userPay : group.getUsers()) {
-                if (userPay.getUser().getId().equals(userId)) {
-                    userPercentage = userPay.getPercentage();
-                    break;
-                }
-            }
-        }
-
-        return userPercentage;
-    }
-
-    // Helper method to get the user's custom amount (could be user input or from the database)
-    private double getUserCustomAmount(String userId) {
-        double userCustomAmount = 0.0;
-
-        // Assuming each user in `UserPay` has a custom amount field
-        if (group.getUsers() != null) {
-            for (UserPay userPay : group.getUsers()) {
-                if (userPay.getUser().getId().equals(userId)) {
-                    userCustomAmount = userPay.getCustomAmount();
-                    break;
-                }
-            }
-        }
-
-        return userCustomAmount;
-    }
-
-
-
     private void displayUserOwedAmount() {
-        double userShare = 0.0;
+        double userShare = 0;
 
-        if (group.getUsers() != null) {
-            for (UserPay userPay : group.getUsers()) {
-                Log.d("DEBUG", "Checking UserPay: " + userPay.getUser().getId()); // Debugging
-
+        if (group.getUserPayList() != null) {
+            for (UserPay userPay : group.getUserPayList()) {
                 if (userPay.getUser().getId().equals(currentUserId)) {
                     Log.d("DEBUG", "Matched current user: " + currentUserId);
 
-                    if ("Equal Split".equals(group.getSplittingMethod())) {
-                        userShare = group.getTotalAmount() / numberOfParticipants;
-                        Log.d("DEBUG", "Equal Split - User Share: " + userShare);
-                    } else if ("Percentage-based".equals(group.getSplittingMethod())) {
-                        double userPercentage = userPay.getPercentage(); // Now from UserPay
-                        userShare = (userPercentage / 100) * group.getTotalAmount();
+                    if (group.getSplitMethod().equals("חלוקה לפי אחוזים")) {
+                        userShare = (userPay.getAmount() / group.getTotalAmount()) * 100;
                         Log.d("DEBUG", "Percentage Split - User Share: " + userShare);
-                    } else if ("Custom Split".equals(group.getSplittingMethod())) {
-                        userShare = userPay.getCustomAmount(); // Now from UserPay
+                    } else if (group.getSplitMethod().equals("חלוקה מותאמת אישית")) {
+                        userShare = userPay.getAmount();
                         Log.d("DEBUG", "Custom Split - User Share: " + userShare);
+                    } else { // Equal split
+                        userShare = userPay.getAmount();
+                        Log.d("DEBUG", "Equal Split - User Share: " + userShare);
                     }
                     break;
                 }
             }
         } else {
-            Log.e("DEBUG", "group.getUsers() is null");
+            Log.e("DEBUG", "group.getUserPayList() is null");
         }
 
         Log.d("DEBUG", "Final User Share: " + userShare);

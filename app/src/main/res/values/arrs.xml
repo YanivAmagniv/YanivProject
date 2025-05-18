@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="cityArr">
-        <item>ראשון לציון</item>
-        <item>ירושלים</item>
-        <item>תל אביב</item>
-        <item>רמת גן</item>
-        <item>בת ים</item>
-        <item>חולון</item>
-        <item>חיפה</item>
-        <item>אילת</item>
-        <item>פתח תקווה</item>
-        <item>באר שבע</item>
-
-    </string-array>
     <string-array name="typeOfEventArr">
         <item>מסעדה</item>
         <item>מונית</item>
@@ -20,7 +7,6 @@
         <item>שכר דירה</item>
         <item>סופר</item>
         <item>אחר</item>
-
     </string-array>
 
     <string-array name="currencyArr">
@@ -43,5 +29,4 @@
         <item>VND</item> <!-- Vietnamese Dong -->
         <item>PKR</item> <!-- Pakistani Rupee -->
     </string-array>
-
 </resources>

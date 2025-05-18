@@ -1,14 +1,14 @@
 package com.example.yanivproject.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,20 +16,24 @@ import com.example.yanivproject.R;
 import com.example.yanivproject.adapters.GroupAdapter;
 import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.UserPay;
-import com.example.yanivproject.services.AuthenticationService;
-import com.example.yanivproject.services.DatabaseService;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExistentGroup extends NavActivity {
-    DatabaseService databaseService;
-    RecyclerView rvPaidGroups, rvUnpaidGroups;
-
-    List<Group> paidGroups = new ArrayList<>();
-    List<Group> unpaidGroups = new ArrayList<>();
-
-    GroupAdapter paidAdapter, unpaidAdapter;
+    private RecyclerView recyclerView;
+    private GroupAdapter adapter;
+    private ArrayList<Group> groupList;
+    private DatabaseReference groupsRef;
+    private String userId;
+    private TextView noGroupsText;
+    private Button addGroupButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,81 +41,83 @@ public class ExistentGroup extends NavActivity {
         setContentView(R.layout.activity_existent_group);
         setupNavigationDrawer();
 
-        // Set up window insets for edge-to-edge support
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        // Initialize views
+        recyclerView = findViewById(R.id.recyclerView);
+        noGroupsText = findViewById(R.id.noGroupsText);
+        addGroupButton = findViewById(R.id.addGroupButton);
+
+        // Set up RecyclerView
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        groupList = new ArrayList<>();
+        adapter = new GroupAdapter(groupList, this);
+        recyclerView.setAdapter(adapter);
+
+        // Get current user ID
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        // Initialize Firebase reference
+        groupsRef = FirebaseDatabase.getInstance().getReference("groups");
+
+        // Load groups
+        loadGroups();
+
+        // Set up add group button
+        addGroupButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ExistentGroup.this, AddNewEvent.class);
+            startActivity(intent);
         });
-
-        // Initialize RecyclerViews for Paid and Unpaid groups
-        rvPaidGroups = findViewById(R.id.rvPaidGroups);
-        rvUnpaidGroups = findViewById(R.id.rvUnpaidGroups);
-
-        rvPaidGroups.setLayoutManager(new LinearLayoutManager(this));
-        rvUnpaidGroups.setLayoutManager(new LinearLayoutManager(this));
-
-        // Initialize adapters
-        paidAdapter = new GroupAdapter(paidGroups, this);
-        unpaidAdapter = new GroupAdapter(unpaidGroups, this);
-
-        rvPaidGroups.setAdapter(paidAdapter);
-        rvUnpaidGroups.setAdapter(unpaidAdapter);
-
-        // Initialize Firebase database service
-        databaseService = DatabaseService.getInstance();
-        String userId = AuthenticationService.getInstance().getCurrentUserId(); // Get current user ID
-
-        fetchGroups(userId);
     }
 
-    private void fetchGroups(String userId) {
-        databaseService.getGroups(new DatabaseService.DatabaseCallback<List<Group>>() {
+    private void loadGroups() {
+        groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onCompleted(List<Group> groups) {
-                paidGroups.clear();
-                unpaidGroups.clear();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                groupList.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Group group = snapshot.getValue(Group.class);
+                    if (group != null) {
+                        boolean isCreator = group.getCreator() != null && 
+                                         group.getCreator().getId().equals(userId);
+                        boolean isMember = false;
 
-                for (Group group : groups) {
-                    boolean isAdmin = group.getAdmin() != null && group.getAdmin().getId().equals(userId);
-                    boolean isMember = false;
-
-                    if (group.getUsers() != null) {
-                        for (UserPay userPay : group.getUsers()) {
-                            if (userPay.getUser() != null && userPay.getUser().getId().equals(userId)) {
-                                isMember = true;
-                                break;
+                        // Check if user is a member
+                        if (group.getUserPayList() != null) {
+                            for (UserPay userPay : group.getUserPayList()) {
+                                if (userPay.getUser().getId().equals(userId)) {
+                                    isMember = true;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if (isAdmin || isMember) {
-                        if ("Paid".equals(group.getStatus())) {
-                            paidGroups.add(group);
-                        } else {
-                            unpaidGroups.add(group);
+                        // Add group to list if user is creator or member
+                        if (isCreator || isMember) {
+                            groupList.add(group);
                         }
                     }
                 }
 
-                Log.d("ExistentGroup", "Paid Groups: " + paidGroups.size() + ", Unpaid Groups: " + unpaidGroups.size());
+                // Update UI
+                if (groupList.isEmpty()) {
+                    noGroupsText.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);
+                } else {
+                    noGroupsText.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                }
 
-                updateUI();
+                adapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onFailed(Exception e) {
-                Log.e("ExistentGroup", "Error fetching groups", e);
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("ExistentGroup", "Failed to load groups", error.toException());
+                Toast.makeText(ExistentGroup.this, "Failed to load groups", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateUI() {
-        paidAdapter.notifyDataSetChanged();
-        unpaidAdapter.notifyDataSetChanged();
-    }
     public void goBack(View view) {
         onBackPressed();  // This will navigate back to the previous activity
     }
-
 }

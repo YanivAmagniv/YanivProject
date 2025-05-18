@@ -11,27 +11,24 @@ public class User implements Serializable {
     protected String phone;
     protected String email;
     protected String password;
-    protected String city;
-
     protected Boolean isAdmin;
 
-    public User(String id, String fname, String lname, String phone, String email, String password, String city, Boolean isAdmin) {
+    public User(String id, String fname, String lname, String phone, String email, String password, Boolean isAdmin) {
         this.id = id;
         this.fname = fname;
         this.lname = lname;
         this.phone = phone;
         this.email = email;
         this.password = password;
-        this.city = city;
         this.isAdmin = isAdmin;
     }
+    
     public User(User user) {
         this.id = user.id;
         this.fname = user.fname;
         this.lname = user.lname;
         this.phone = user.phone;
         this.email = user.email;
-
     }
 
     public User() {
@@ -85,14 +82,6 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
     public String getFullName() {
         return fname + " " + lname; // Return full name
     }
@@ -105,6 +94,14 @@ public class User implements Serializable {
         isAdmin = admin;
     }
 
+    public String getName() {
+        return fname + " " + lname;
+    }
+
+    public void setName(String name) {
+        // This method is not used in the current implementation
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -114,9 +111,7 @@ public class User implements Serializable {
                 ", phone='" + phone + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", city='" + city + '\'' +
                 ", isAdmin='" + isAdmin + '\'' +
-
                 '}';
     }
 }

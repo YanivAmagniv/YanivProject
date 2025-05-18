@@ -22,7 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class UserDetails extends NavActivity {
-    private EditText etFirstName, etLastName, etPhone, etEmail, etCity, etCurrentPassword, etNewPassword, etIsAdmin;
+    private EditText etFirstName, etLastName, etPhone, etEmail, etCurrentPassword, etNewPassword, etIsAdmin;
     private Button btnEdit, btnUpdate, btnChangePassword;
     private FirebaseAuth auth;
     private FirebaseUser currentUser;
@@ -53,7 +53,6 @@ public class UserDetails extends NavActivity {
         etLastName = findViewById(R.id.etLastName);
         etPhone = findViewById(R.id.etPhone);
         etEmail = findViewById(R.id.etEmail);
-        etCity = findViewById(R.id.etCity);
         etCurrentPassword = findViewById(R.id.etCurrentPassword);
         etNewPassword = findViewById(R.id.etNewPassword);
         btnEdit = findViewById(R.id.btnEdit);
@@ -67,8 +66,7 @@ public class UserDetails extends NavActivity {
         etFirstName.setEnabled(enabled);
         etLastName.setEnabled(enabled);
         etPhone.setEnabled(enabled);
-        etCity.setEnabled(enabled);
-        etEmail.setEnabled(false); // Email should only be changed via Firebase Auth
+        etEmail.setEnabled(enabled);
 
         btnEdit.setVisibility(enabled ? View.GONE : View.VISIBLE);
         btnUpdate.setVisibility(enabled ? View.VISIBLE : View.GONE);
@@ -86,7 +84,7 @@ public class UserDetails extends NavActivity {
                     etFirstName.setText(user.getFname());
                     etLastName.setText(user.getLname());
                     etPhone.setText(user.getPhone());
-                    etCity.setText(user.getCity());
+                    etEmail.setText(user.getEmail());
                     etIsAdmin.setText(user.getAdmin() ? "Is Admin" : "Not Admin");
                 }
             }).addOnFailureListener(e -> Toast.makeText(this, "Failed to load user data.", Toast.LENGTH_SHORT).show());
@@ -109,23 +107,23 @@ public class UserDetails extends NavActivity {
         String newFirstName = etFirstName.getText().toString().trim();
         String newLastName = etLastName.getText().toString().trim();
         String newPhone = etPhone.getText().toString().trim();
-        String newCity = etCity.getText().toString().trim();
 
-        if (newFirstName.isEmpty() || newLastName.isEmpty() || newPhone.isEmpty() || newCity.isEmpty()) {
-            Toast.makeText(this, "All fields must be filled!", Toast.LENGTH_SHORT).show();
+        if (newFirstName.isEmpty() || newLastName.isEmpty() || newPhone.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Update Firebase Database
         userRef.child("fname").setValue(newFirstName);
         userRef.child("lname").setValue(newLastName);
-        userRef.child("phone").setValue(newPhone);
-        userRef.child("city").setValue(newCity)
+        userRef.child("phone").setValue(newPhone)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Profile updated!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UserDetails.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
                     setEditMode(false);
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update!", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(UserDetails.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                });
     }
 
     // Change user password securely

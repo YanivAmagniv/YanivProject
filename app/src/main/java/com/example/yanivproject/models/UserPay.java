@@ -6,20 +6,28 @@ public class UserPay implements Serializable {
     private static final long serialVersionUID = 1L;  // Optional
 
     protected User user;
-    protected double owns;
-    protected String status;
-    protected double percentage;   // New field for percentage-based split
-    protected double customAmount; // New field for custom amount split
-
-    public UserPay(User user, double owns, boolean status, double percentage, double customAmount) {
-        this.user = user;
-        this.owns = owns;
-        this.status = status ? "Paid" : "Unpaid";
-        this.percentage = percentage;
-        this.customAmount = customAmount;
-    }
+    protected double amount;
+    protected boolean isPaid;
+    protected double totalPaid;
+    protected double remaining;
 
     public UserPay() {
+    }
+
+    public UserPay(User user, double amount) {
+        this.user = user;
+        this.amount = amount;
+        this.isPaid = false;
+        this.totalPaid = 0;
+        this.remaining = amount;
+    }
+
+    public UserPay(User user, double amount, boolean isPaid, double totalPaid, double remaining) {
+        this.user = user;
+        this.amount = amount;
+        this.isPaid = isPaid;
+        this.totalPaid = totalPaid;
+        this.remaining = remaining;
     }
 
     public User getUser() {
@@ -30,46 +38,46 @@ public class UserPay implements Serializable {
         this.user = user;
     }
 
-    public double getOwns() {
-        return owns;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setOwns(double owns) {
-        this.owns = owns;
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 
-    public String getStatus() {
-        return status;
+    public boolean isPaid() {
+        return isPaid;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setPaid(boolean paid) {
+        isPaid = paid;
     }
 
-    public double getPercentage() {
-        return percentage;
+    public double getTotalPaid() {
+        return totalPaid;
     }
 
-    public void setPercentage(double percentage) {
-        this.percentage = percentage;
+    public void setTotalPaid(double totalPaid) {
+        this.totalPaid = totalPaid;
     }
 
-    public double getCustomAmount() {
-        return customAmount;
+    public double getRemaining() {
+        return remaining;
     }
 
-    public void setCustomAmount(double customAmount) {
-        this.customAmount = customAmount;
+    public void setRemaining(double remaining) {
+        this.remaining = remaining;
     }
 
     @Override
     public String toString() {
         return "UserPay{" +
                 "user=" + user +
-                ", owns=" + owns +
-                ", status='" + status + '\'' +
-                ", percentage=" + percentage +
-                ", customAmount=" + customAmount +
+                ", amount=" + amount +
+                ", isPaid=" + isPaid +
+                ", totalPaid=" + totalPaid +
+                ", remaining=" + remaining +
                 '}';
     }
 }
