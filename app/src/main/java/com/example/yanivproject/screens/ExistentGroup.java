@@ -24,12 +24,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ExistentGroup extends NavActivity {
-    private RecyclerView recyclerView;
-    private GroupAdapter adapter;
-    private ArrayList<Group> groupList;
+    private RecyclerView rvCreatedGroups;
+    private RecyclerView rvJoinedGroups;
+    private RecyclerView rvPaidGroups;
+    private GroupAdapter createdGroupsAdapter;
+    private GroupAdapter joinedGroupsAdapter;
+    private GroupAdapter paidGroupsAdapter;
+    private ArrayList<Group> createdGroupsList;
+    private ArrayList<Group> joinedGroupsList;
+    private ArrayList<Group> paidGroupsList;
     private DatabaseReference groupsRef;
     private String userId;
     private TextView noGroupsText;
@@ -42,15 +47,28 @@ public class ExistentGroup extends NavActivity {
         setupNavigationDrawer();
 
         // Initialize views
-        recyclerView = findViewById(R.id.recyclerView);
+        rvCreatedGroups = findViewById(R.id.rvCreatedGroups);
+        rvJoinedGroups = findViewById(R.id.rvJoinedGroups);
+        rvPaidGroups = findViewById(R.id.rvPaidGroups);
         noGroupsText = findViewById(R.id.noGroupsText);
         addGroupButton = findViewById(R.id.addGroupButton);
 
-        // Set up RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        groupList = new ArrayList<>();
-        adapter = new GroupAdapter(groupList, this);
-        recyclerView.setAdapter(adapter);
+        // Set up RecyclerViews
+        createdGroupsList = new ArrayList<>();
+        joinedGroupsList = new ArrayList<>();
+        paidGroupsList = new ArrayList<>();
+        
+        createdGroupsAdapter = new GroupAdapter(createdGroupsList, this);
+        joinedGroupsAdapter = new GroupAdapter(joinedGroupsList, this);
+        paidGroupsAdapter = new GroupAdapter(paidGroupsList, this);
+        
+        rvCreatedGroups.setLayoutManager(new LinearLayoutManager(this));
+        rvJoinedGroups.setLayoutManager(new LinearLayoutManager(this));
+        rvPaidGroups.setLayoutManager(new LinearLayoutManager(this));
+        
+        rvCreatedGroups.setAdapter(createdGroupsAdapter);
+        rvJoinedGroups.setAdapter(joinedGroupsAdapter);
+        rvPaidGroups.setAdapter(paidGroupsAdapter);
 
         // Get current user ID
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -72,7 +90,10 @@ public class ExistentGroup extends NavActivity {
         groupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                groupList.clear();
+                createdGroupsList.clear();
+                joinedGroupsList.clear();
+                paidGroupsList.clear();
+                
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Group group = snapshot.getValue(Group.class);
                     if (group != null) {
@@ -83,30 +104,45 @@ public class ExistentGroup extends NavActivity {
                         // Check if user is a member
                         if (group.getUserPayList() != null) {
                             for (UserPay userPay : group.getUserPayList()) {
-                                if (userPay.getUser().getId().equals(userId)) {
+                                if (userPay != null && userPay.getUser() != null && 
+                                    userPay.getUser().getId().equals(userId)) {
                                     isMember = true;
                                     break;
                                 }
                             }
                         }
 
-                        // Add group to list if user is creator or member
-                        if (isCreator || isMember) {
-                            groupList.add(group);
+                        // Add group to appropriate list
+                        if ("Paid".equals(group.getStatus())) {
+                            if (isCreator || isMember) {
+                                paidGroupsList.add(group);
+                            }
+                        } else {
+                            if (isCreator) {
+                                createdGroupsList.add(group);
+                            } else if (isMember) {
+                                joinedGroupsList.add(group);
+                            }
                         }
                     }
                 }
 
                 // Update UI
-                if (groupList.isEmpty()) {
+                if (createdGroupsList.isEmpty() && joinedGroupsList.isEmpty() && paidGroupsList.isEmpty()) {
                     noGroupsText.setVisibility(View.VISIBLE);
-                    recyclerView.setVisibility(View.GONE);
+                    rvCreatedGroups.setVisibility(View.GONE);
+                    rvJoinedGroups.setVisibility(View.GONE);
+                    rvPaidGroups.setVisibility(View.GONE);
                 } else {
                     noGroupsText.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.VISIBLE);
+                    rvCreatedGroups.setVisibility(createdGroupsList.isEmpty() ? View.GONE : View.VISIBLE);
+                    rvJoinedGroups.setVisibility(joinedGroupsList.isEmpty() ? View.GONE : View.VISIBLE);
+                    rvPaidGroups.setVisibility(paidGroupsList.isEmpty() ? View.GONE : View.VISIBLE);
                 }
 
-                adapter.notifyDataSetChanged();
+                createdGroupsAdapter.notifyDataSetChanged();
+                joinedGroupsAdapter.notifyDataSetChanged();
+                paidGroupsAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -118,6 +154,6 @@ public class ExistentGroup extends NavActivity {
     }
 
     public void goBack(View view) {
-        onBackPressed();  // This will navigate back to the previous activity
+        onBackPressed();
     }
 }

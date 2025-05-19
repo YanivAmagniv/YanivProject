@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base colors -->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
     
-    <!-- Theme colors -->
-    <color name="colorPrimary">#1976D2</color>
-    <color name="colorPrimaryDark">#1565C0</color>
+    <!-- Material Design theme colors -->
+    <color name="colorPrimary">#2196F3</color>
+    <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorAccent">#FF4081</color>
+    
+    <!-- Custom theme colors -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="primary_light">#BBDEFB</color>
+    <color name="accent">#FF4081</color>
     
     <!-- UI colors -->
     <color name="background">#F5F5F5</color>
     <color name="surface">#FFFFFF</color>
-    <color name="button">#1976D2</color>
+    <color name="button">#2196F3</color>
     <color name="buttonPressed">#1565C0</color>
     <color name="gray">#757575</color>
     <color name="lightGray">#EEEEEE</color>
     <color name="textPrimary">#212121</color>
     <color name="textSecondary">#757575</color>
-    <color name="divider">#BDBDBD</color>
+    <color name="divider">#E0E0E0</color>
 </resources>

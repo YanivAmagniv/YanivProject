@@ -36,7 +36,9 @@ public class AdminActivity extends NavActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "יש להתחבר תחילה", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MainActivity.class));
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
             finish();
             return;
         }
@@ -47,7 +49,9 @@ public class AdminActivity extends NavActivity {
             User user = snapshot.getValue(User.class);
             if (user == null || !user.getAdmin()) {
                 Toast.makeText(this, "גישה למנהלים בלבד", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, MainActivity.class));
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
                 return;
             }
@@ -68,7 +72,9 @@ public class AdminActivity extends NavActivity {
             fetchAllUsers();
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "שגיאה בטעינת פרטי משתמש", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MainActivity.class));
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
             finish();
         });
     }

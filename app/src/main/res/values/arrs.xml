@@ -8,25 +8,4 @@
         <item>סופר</item>
         <item>אחר</item>
     </string-array>
-
-    <string-array name="currencyArr">
-        <item>INS</item> <!-- ISRAELI SHEKEL -->
-        <item>USD</item> <!-- US Dollar -->
-        <item>EUR</item> <!-- Euro -->
-        <item>GBP</item> <!-- British Pound -->
-        <item>INR</item> <!-- Indian Rupee -->
-        <item>AUD</item> <!-- Australian Dollar -->
-        <item>CAD</item> <!-- Canadian Dollar -->
-        <item>JPY</item> <!-- Japanese Yen -->
-        <item>CNY</item> <!-- Chinese Yuan -->
-        <item>MXN</item> <!-- Mexican Peso -->
-        <item>BRL</item> <!-- Brazilian Real -->
-        <item>RUB</item> <!-- Russian Ruble -->
-        <item>HKD</item> <!-- Hong Kong Dollar -->
-        <item>TRY</item> <!-- Turkish Lira -->
-        <item>ARS</item> <!-- Argentine Peso -->
-        <item>EGP</item> <!-- Egyptian Pound -->
-        <item>VND</item> <!-- Vietnamese Dong -->
-        <item>PKR</item> <!-- Pakistani Rupee -->
-    </string-array>
 </resources>

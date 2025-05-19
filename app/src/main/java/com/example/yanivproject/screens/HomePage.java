@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -22,30 +23,46 @@ import com.example.yanivproject.models.User;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-public class Activity_Groups extends NavActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class HomePage extends NavActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private Button btnAdminPage;
+    private TextView welcomeText;
+    private TextView userStatsText;
     private User currentUser;
     private ActionBarDrawerToggle toggle;
     private DrawerLayout drawerLayout;
+    private String currentUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_groups);
+        setContentView(R.layout.activity_home_page);
         setupNavigationDrawer();
 
         // Set up the Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Initialize views
         btnAdminPage = findViewById(R.id.btnAdminPage);
         btnAdminPage.setVisibility(View.GONE); // Default to hidden
+        welcomeText = findViewById(R.id.welcomeText);
+        userStatsText = findViewById(R.id.userStatsText);
         drawerLayout = findViewById(R.id.drawer_layout);
+
+        // Get current user ID
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            currentUserId = firebaseUser.getUid();
+            loadUserData();
+        }
 
         // Check if the current user is an admin
         checkIfAdmin();
@@ -90,6 +107,37 @@ public class Activity_Groups extends NavActivity implements NavigationView.OnNav
         }
     }
 
+    private void loadUserData() {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String firstName = snapshot.child("firstName").getValue(String.class);
+                    String lastName = snapshot.child("lastName").getValue(String.class);
+                    String fullName = firstName + " " + lastName;
+                    
+                    // Update welcome message
+                    welcomeText.setText("ברוך הבא, " + fullName + "!");
+                    
+                    // Get user stats
+                    long groupsCount = snapshot.child("groups").getChildrenCount();
+                    long eventsCount = snapshot.child("events").getChildrenCount();
+                    
+                    // Update stats text
+                    String statsText = String.format("קבוצות פעילות: %d\nאירועים קרובים: %d", 
+                        groupsCount, eventsCount);
+                    userStatsText.setText(statsText);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(HomePage.this, "שגיאה בטעינת נתוני משתמש", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     // Check if the current user is an admin
     private void checkIfAdmin() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -114,7 +162,8 @@ public class Activity_Groups extends NavActivity implements NavigationView.OnNav
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            startActivity(new Intent(this, MainActivity.class));
+            // Don't navigate, we're already in HomePage
+            drawerLayout.closeDrawer(GravityCompat.START);
         } else if (id == R.id.nav_new_group) {
             startActivity(new Intent(this, AddNewEvent.class));
         } else if (id == R.id.nav_existent_groups) {

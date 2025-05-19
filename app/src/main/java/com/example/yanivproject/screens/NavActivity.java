@@ -87,7 +87,9 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
 
         // Start the appropriate activity based on which menu item was clicked
         if (id == R.id.nav_home) {
-            startActivity(new Intent(this, Activity_Groups.class));
+            Intent intent = new Intent(this, HomePage.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         } else if (id == R.id.nav_new_group) {
             startActivity(new Intent(this, AddNewEvent.class));
         } else if (id == R.id.nav_existent_groups) {
@@ -98,7 +100,9 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
             startActivity(new Intent(this, AdminActivity.class));
         } else if (id == R.id.nav_logout) {
             FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(this, Login.class));
+            Intent intent = new Intent(this, Login.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
             finish();
         }
 
@@ -109,7 +113,7 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
 
     // Helper method to get the destination activity class
     private Class<?> getDestinationActivity(int id) {
-        if (id == R.id.nav_home) return Activity_Groups.class;
+        if (id == R.id.nav_home) return HomePage.class;
         else if (id == R.id.nav_new_group) return AddNewEvent.class;
         else if (id == R.id.nav_existent_groups) return ExistentGroup.class;
         else if (id == R.id.nav_user_details) return UserDetails.class;

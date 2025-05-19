@@ -31,14 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AddNewEvent extends NavActivity implements View.OnClickListener {
-    private AutoCompleteTextView spCurrency, spEventType, spSplittingMethod;
+    private AutoCompleteTextView spEventType, spSplittingMethod;
     private CalendarView cvEventDate;
     private TextView dateTextView;
     private TextInputEditText etTotalAmount;
     private String stDate;
 
     private TextInputEditText etGroupName, etDescription;
-    private String stGroupName, stDescription, stSPcurrency, stSPeventType;
+    private String stGroupName, stDescription, stSPeventType;
 
     private MaterialButton btnCreateGroup, btnBack;
     private DatabaseService databaseService;
@@ -73,7 +73,6 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
     private void initViews() {
         btnCreateGroup = findViewById(R.id.btnCreateGroup);
         btnBack = findViewById(R.id.btnBack);
-        spCurrency = findViewById(R.id.spCurrency);
         spEventType = findViewById(R.id.spEventType);
         etDescription = findViewById(R.id.etDescription);
         etGroupName = findViewById(R.id.etGroupName);
@@ -120,11 +119,6 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
     }
 
     private void setupSpinners() {
-        // Currency spinner
-        ArrayAdapter<CharSequence> currencyAdapter = ArrayAdapter.createFromResource(
-                this, R.array.currencyArr, android.R.layout.simple_dropdown_item_1line);
-        spCurrency.setAdapter(currencyAdapter);
-
         // Event type spinner
         ArrayAdapter<CharSequence> eventTypeAdapter = ArrayAdapter.createFromResource(
                 this, R.array.typeOfEventArr, android.R.layout.simple_dropdown_item_1line);
@@ -246,7 +240,6 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
     private boolean validateInput() {
         stGroupName = etGroupName.getText().toString().trim();
         stDescription = etDescription.getText().toString().trim();
-        stSPcurrency = spCurrency.getText().toString();
         stSPeventType = spEventType.getText().toString();
         String totalAmountStr = etTotalAmount.getText().toString().trim();
 
@@ -302,7 +295,9 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(AddNewEvent.this, "הקבוצה נוצרה בהצלחה!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                Intent intent = new Intent(getApplicationContext(), ExistentGroup.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
             }
 

@@ -54,7 +54,7 @@
             android:name=".screens.Login"
             android:exported="false" />
         <activity
-            android:name=".screens.Activity_Groups"
+            android:name=".screens.HomePage"
             android:exported="false" />
     </application>
 
