@@ -9,21 +9,16 @@
     android:padding="16dp"
     tools:context=".screens.MainActivity">
 
-
     <ImageView
         android:id="@+id/myImageView"
-        android:layout_width="344dp"
-        android:layout_height="0dp"
-        android:layout_gravity="center"
-
-        android:layout_marginTop="42dp"
-        android:layout_marginEnd="36dp"
-        android:layout_marginBottom="79dp"
-        android:contentDescription="Logo"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="32dp"
+        android:contentDescription="@string/app_name"
         android:scaleType="fitCenter"
-        android:src="@drawable/smartsplit"
-        app:layout_constraintBottom_toTopOf="@+id/btnLogin"
+        android:src="@drawable/smartsplitlogo"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
@@ -33,12 +28,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="41dp"
         android:layout_marginEnd="41dp"
-        android:layout_marginBottom="61dp"
+        android:layout_marginTop="48dp"
         android:text="התחבר"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnRegister"
-        app:layout_constraintEnd_toEndOf="@+id/myImageView"
-        app:layout_constraintStart_toStartOf="@+id/myImageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/myImageView" />
 
     <com.google.android.material.button.MaterialButton
@@ -46,27 +40,27 @@
         style="@style/AppButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
-        android:layout_marginEnd="2dp"
-        android:layout_marginBottom="248dp"
+        android:layout_marginStart="41dp"
+        android:layout_marginEnd="41dp"
+        android:layout_marginTop="16dp"
         android:text="הרשם"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnAbout"
-        app:layout_constraintEnd_toEndOf="@+id/btnLogin"
-        app:layout_constraintStart_toStartOf="@+id/btnLogin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnLogin" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAbout"
         style="@style/AppButton"
-        android:layout_width="235dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="85dp"
-        android:layout_marginBottom="28dp"
+        android:layout_marginStart="41dp"
+        android:layout_marginEnd="41dp"
+        android:layout_marginTop="16dp"
         android:text="אודות"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnRegister" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -84,27 +84,47 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:id="@+id/tvDeadlineTitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="תאריך האירוע"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"/>
+                    android:text="תאריך יעד לתשלום"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                <CalendarView
-                    android:id="@+id/cvEventDate"
-                    android:layout_width="match_parent"
+                <CheckBox
+                    android:id="@+id/cbHasDeadline"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/calendar_background"/>
-
-                <TextView
-                    android:id="@+id/dateTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     android:layout_marginTop="8dp"
-                    android:text="התאריך שנבחר"
-                    android:gravity="center"/>
+                    android:text="הגדר תאריך יעד לתשלום" />
+
+                <LinearLayout
+                    android:id="@+id/deadlineContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <CalendarView
+                        android:id="@+id/cvPaymentDeadline"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <TextView
+                        android:id="@+id/deadlineTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:text="תאריך היעד שנבחר"
+                        android:textSize="14sp" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="match_parent"

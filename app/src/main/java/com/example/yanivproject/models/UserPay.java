@@ -5,13 +5,23 @@ import java.io.Serializable;
 public class UserPay implements Serializable {
     private static final long serialVersionUID = 1L;  // Optional
 
+    public enum PaymentStatus {
+        NOT_PAID,
+        PENDING_APPROVAL,
+        PAID
+    }
+
     protected User user;
     protected double amount;
     protected boolean isPaid;
     protected double totalPaid;
     protected double remaining;
+    protected String paymentDate;
+    protected PaymentStatus paymentStatus;
+    protected String paymentNote;
 
     public UserPay() {
+        this.paymentStatus = PaymentStatus.NOT_PAID;
     }
 
     public UserPay(User user, double amount) {
@@ -20,6 +30,7 @@ public class UserPay implements Serializable {
         this.isPaid = false;
         this.totalPaid = 0;
         this.remaining = amount;
+        this.paymentStatus = PaymentStatus.NOT_PAID;
     }
 
     public UserPay(User user, double amount, boolean isPaid, double totalPaid, double remaining) {
@@ -28,6 +39,7 @@ public class UserPay implements Serializable {
         this.isPaid = isPaid;
         this.totalPaid = totalPaid;
         this.remaining = remaining;
+        this.paymentStatus = isPaid ? PaymentStatus.PAID : PaymentStatus.NOT_PAID;
     }
 
     public User getUser() {
@@ -70,6 +82,31 @@ public class UserPay implements Serializable {
         this.remaining = remaining;
     }
 
+    public String getPaymentDate() {
+        return paymentDate;
+    }
+
+    public void setPaymentDate(String paymentDate) {
+        this.paymentDate = paymentDate;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+        this.isPaid = (paymentStatus == PaymentStatus.PAID);
+    }
+
+    public String getPaymentNote() {
+        return paymentNote;
+    }
+
+    public void setPaymentNote(String paymentNote) {
+        this.paymentNote = paymentNote;
+    }
+
     @Override
     public String toString() {
         return "UserPay{" +
@@ -78,6 +115,9 @@ public class UserPay implements Serializable {
                 ", isPaid=" + isPaid +
                 ", totalPaid=" + totalPaid +
                 ", remaining=" + remaining +
+                ", paymentDate=" + paymentDate +
+                ", paymentStatus=" + paymentStatus +
+                ", paymentNote=" + paymentNote +
                 '}';
     }
 }

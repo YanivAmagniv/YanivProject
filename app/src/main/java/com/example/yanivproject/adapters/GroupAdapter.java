@@ -40,7 +40,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             super(itemView);
             groupName = itemView.findViewById(R.id.group_name);
             groupDescription = itemView.findViewById(R.id.group_description);
-            groupDate = itemView.findViewById(R.id.group_date);
         }
     }
 

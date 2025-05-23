@@ -25,4 +25,12 @@
     <color name="textPrimary">#212121</color>
     <color name="textSecondary">#757575</color>
     <color name="divider">#E0E0E0</color>
+    <color name="gray_light">#EEEEEE</color>
+    
+    <!-- Payment status colors -->
+    <color name="status_paid">#4CAF50</color>
+    <color name="status_pending">#FFC107</color>
+    <color name="status_not_paid">#F44336</color>
+    <color name="status_background">#F5F5F5</color>
+    <color name="status_text">#212121</color>
 </resources>

@@ -32,6 +32,21 @@
         
         <!-- Navigation drawer -->
         <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+
+        <!-- Splash screen configuration -->
+        <item name="android:windowSplashScreenBackground">@color/colorPrimary</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/smartsplitlogo</item>
+        <item name="android:windowSplashScreenAnimationDuration">300</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/colorPrimary</item>
+    </style>
+
+    <!-- Theme for splash screen -->
+    <style name="Theme.YanivProject.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:windowBackground">@color/colorPrimary</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
 
     <!-- Theme with ActionBar -->

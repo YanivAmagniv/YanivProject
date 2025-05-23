@@ -38,6 +38,17 @@
                 android:padding="16dp"
                 android:background="@color/background">
 
+                <ImageView
+                    android:id="@+id/homeLogo"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:contentDescription="@string/app_name"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/smartsplitlogo" />
+
                 <TextView
                     android:id="@+id/welcomeText"
                     android:layout_width="wrap_content"
@@ -45,7 +56,6 @@
                     android:text="ברוך הבא!"
                     android:textAppearance="@style/TextAppearance.App.Headline1"
                     android:layout_gravity="center"
-                    android:layout_marginTop="24dp"
                     android:layout_marginBottom="16dp" />
 
                 <com.google.android.material.card.MaterialCardView

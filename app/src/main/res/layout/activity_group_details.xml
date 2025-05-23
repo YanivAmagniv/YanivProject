@@ -51,13 +51,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Description:"
+                    android:text="Group Owner:"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/black" />
 
                 <TextView
-                    android:id="@+id/group_description"
+                    android:id="@+id/group_owner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
@@ -66,13 +66,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Event Date:"
+                    android:text="Description:"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/black" />
 
                 <TextView
-                    android:id="@+id/group_date"
+                    android:id="@+id/group_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
@@ -132,12 +132,15 @@
                     android:textStyle="bold"
                     android:textColor="@color/black" />
 
-                <TextView
-                    android:id="@+id/group_participants"
+                <LinearLayout
+                    android:id="@+id/participants_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:paddingBottom="8dp" />
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:background="@color/status_background"
+                    android:padding="8dp"/>
 
                 <Button
                     android:id="@+id/btnMarkCurrentUserPaid"
@@ -162,14 +165,15 @@
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
                     android:paddingBottom="8dp" />
-                <Button
-                    android:id="@+id/btnEditStatus"
+
+                <com.example.yanivproject.views.DeadlineCountdownView
+                    android:id="@+id/deadline_countdown"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Mark as Paid"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
                     android:layout_marginTop="8dp"
-                    android:backgroundTint="@android:color/holo_green_light"
-                    android:textColor="@android:color/white" />
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp" />
 
                 <Button
                     android:id="@+id/delete_button"

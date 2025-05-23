@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.CalendarView;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,14 +29,18 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
 
 public class AddNewEvent extends NavActivity implements View.OnClickListener {
     private AutoCompleteTextView spEventType, spSplittingMethod;
-    private CalendarView cvEventDate;
-    private TextView dateTextView;
+    private CalendarView cvPaymentDeadline;
+    private TextView deadlineTextView;
+    private String stDeadlineDate;
     private TextInputEditText etTotalAmount;
-    private String stDate;
 
     private TextInputEditText etGroupName, etDescription;
     private String stGroupName, stDescription, stSPeventType;
@@ -53,6 +58,12 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
     private UserSelectionAdapter userSelectionAdapter;
     private TextView tvSplitExplanation, tvTotalSplit;
     private double totalAmount = 0.0;
+
+    private CheckBox cbHasDeadline;
+    private static final int MIN_DAYS_UNTIL_DEADLINE = 1;
+    private static final int MAX_DAYS_UNTIL_DEADLINE = 90; // 3 months
+
+    private View deadlineContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,10 +91,12 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         spSplittingMethod = findViewById(R.id.spSplittingMethod);
         rvUserAmounts = findViewById(R.id.rvUserAmounts);
         rvParticipants = findViewById(R.id.rvParticipants);
-        cvEventDate = findViewById(R.id.cvEventDate);
-        dateTextView = findViewById(R.id.dateTextView);
+        cvPaymentDeadline = findViewById(R.id.cvPaymentDeadline);
+        deadlineTextView = findViewById(R.id.deadlineTextView);
         tvSplitExplanation = findViewById(R.id.tvSplitExplanation);
         tvTotalSplit = findViewById(R.id.tvTotalSplit);
+        cbHasDeadline = findViewById(R.id.cbHasDeadline);
+        deadlineContainer = findViewById(R.id.deadlineContainer);
 
         btnCreateGroup.setOnClickListener(this);
         btnBack.setOnClickListener(v -> onBackPressed());
@@ -132,9 +145,47 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
     }
 
     private void setupListeners() {
-        cvEventDate.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            stDate = year + "-" + (month + 1) + "-" + dayOfMonth;
-            dateTextView.setText(stDate);
+        cbHasDeadline.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            deadlineContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (!isChecked) {
+                stDeadlineDate = null;
+                deadlineTextView.setText("תאריך היעד שנבחר");
+            }
+        });
+
+        cvPaymentDeadline.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            stDeadlineDate = year + "-" + (month + 1) + "-" + dayOfMonth;
+            deadlineTextView.setText(stDeadlineDate);
+            
+            // Enhanced deadline validation
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date deadline = sdf.parse(stDeadlineDate);
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                Date today = calendar.getTime();
+                
+                if (deadline != null) {
+                    // Calculate days difference
+                    long diffInMillis = deadline.getTime() - today.getTime();
+                    long daysUntilDeadline = diffInMillis / (24 * 60 * 60 * 1000);
+                    
+                    if (daysUntilDeadline < MIN_DAYS_UNTIL_DEADLINE) {
+                        Toast.makeText(this, "תאריך היעד חייב להיות לפחות יום אחד בעתיד", Toast.LENGTH_SHORT).show();
+                        stDeadlineDate = null;
+                        deadlineTextView.setText("תאריך היעד שנבחר");
+                    } else if (daysUntilDeadline > MAX_DAYS_UNTIL_DEADLINE) {
+                        Toast.makeText(this, "תאריך היעד לא יכול להיות יותר מ-3 חודשים בעתיד", Toast.LENGTH_SHORT).show();
+                        stDeadlineDate = null;
+                        deadlineTextView.setText("תאריך היעד שנבחר");
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("AddNewEvent", "Error validating deadline date", e);
+            }
         });
 
         spSplittingMethod.setOnItemClickListener((parent, view, position, id) -> {
@@ -253,9 +304,9 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
             etDescription.requestFocus();
             return false;
         }
-        if (stDate == null || stDate.isEmpty()) {
-            Toast.makeText(this, "נא לבחור תאריך", Toast.LENGTH_SHORT).show();
-            cvEventDate.requestFocus();
+        if (cbHasDeadline.isChecked() && (stDeadlineDate == null || stDeadlineDate.isEmpty())) {
+            Toast.makeText(this, "נא לבחור תאריך יעד לתשלום", Toast.LENGTH_SHORT).show();
+            cvPaymentDeadline.requestFocus();
             return false;
         }
         if (usersSelected.isEmpty()) {
@@ -288,8 +339,13 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         ArrayList<UserPay> userPayList = userAmountAdapter.getUserPayList();
         
         String groupId = databaseService.generateGroupId();
-        Group group = new Group(groupId, stGroupName, "not paid", stDate, stDescription, 
+        Group group = new Group(groupId, stGroupName, "not paid", stDescription, 
                 stSPeventType, user, userPayList, spSplittingMethod.getText().toString(), totalAmount);
+        
+        // Set the payment deadline only if the checkbox is checked and a date was provided
+        if (cbHasDeadline.isChecked() && stDeadlineDate != null && !stDeadlineDate.isEmpty()) {
+            group.setPaymentDeadline(stDeadlineDate);
+        }
 
         databaseService.createNewGroup(group, new DatabaseService.DatabaseCallback<Void>() {
             @Override
