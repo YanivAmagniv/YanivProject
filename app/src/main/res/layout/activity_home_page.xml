@@ -14,14 +14,15 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+            android:elevation="0dp">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
-                android:elevation="4dp"
+                android:elevation="0dp"
                 app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light" />
 
         </com.google.android.material.appbar.AppBarLayout>
@@ -29,22 +30,23 @@
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true">
+            android:fillViewport="true"
+            android:overScrollMode="never">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
+                android:padding="24dp"
                 android:background="@color/background">
 
                 <ImageView
                     android:id="@+id/homeLogo"
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:layout_gravity="center"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="32dp"
                     android:contentDescription="@string/app_name"
                     android:scaleType="fitCenter"
                     android:src="@drawable/smartsplitlogo" />
@@ -56,19 +58,21 @@
                     android:text="ברוך הבא!"
                     android:textAppearance="@style/TextAppearance.App.Headline1"
                     android:layout_gravity="center"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="24dp" />
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
+                    android:layout_marginBottom="32dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"
                     style="@style/AppCard">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <TextView
                             android:id="@+id/userStatsText"
@@ -76,6 +80,7 @@
                             android:layout_height="wrap_content"
                             android:textAppearance="@style/TextAppearance.App.Body1"
                             android:gravity="center"
+                            android:lineSpacingExtra="8dp"
                             android:text="טוען נתונים..." />
 
                     </LinearLayout>
@@ -88,56 +93,72 @@
                     android:text="מה תרצה לעשות?"
                     android:textAppearance="@style/TextAppearance.App.Headline2"
                     android:layout_gravity="center"
-                    android:layout_marginBottom="24dp" />
+                    android:layout_marginBottom="32dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnNewGroup"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="קבוצה חדשה"
-                    android:textSize="18sp"
-                    android:onClick="go_newgroup"
-                    android:layout_gravity="center"
-                    android:layout_marginBottom="16dp"
-                    app:icon="@android:drawable/ic_menu_add"
-                    style="@style/AppButton" />
+                    android:orientation="vertical"
+                    android:gravity="center">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnExistentGroups"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="קבוצות קיימות"
-                    android:textSize="18sp"
-                    android:onClick="go_ExistentGroup"
-                    android:layout_gravity="center"
-                    android:layout_marginBottom="16dp"
-                    app:icon="@android:drawable/ic_menu_agenda"
-                    style="@style/AppButton" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNewGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="קבוצה חדשה"
+                        android:textSize="16sp"
+                        android:padding="16dp"
+                        android:onClick="go_newgroup"
+                        android:layout_marginBottom="16dp"
+                        app:icon="@android:drawable/ic_menu_add"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="12dp"
+                        style="@style/AppButton" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnUserDetails"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="פרטי משתמש"
-                    android:textSize="18sp"
-                    android:onClick="go_UserDetails"
-                    android:layout_gravity="center"
-                    android:layout_marginBottom="16dp"
-                    app:icon="@android:drawable/ic_menu_myplaces"
-                    style="@style/AppButton" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnExistentGroups"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="קבוצות קיימות"
+                        android:textSize="16sp"
+                        android:padding="16dp"
+                        android:onClick="go_ExistentGroup"
+                        android:layout_marginBottom="16dp"
+                        app:icon="@android:drawable/ic_menu_agenda"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="12dp"
+                        style="@style/AppButton" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAdminPage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="דף מנהל"
-                    android:textSize="18sp"
-                    android:visibility="gone"
-                    android:onClick="goAdminPage"
-                    android:layout_gravity="center"
-                    android:layout_marginBottom="16dp"
-                    app:icon="@android:drawable/ic_menu_manage"
-                    style="@style/AppButton" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUserDetails"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="פרטי משתמש"
+                        android:textSize="16sp"
+                        android:padding="16dp"
+                        android:onClick="go_UserDetails"
+                        android:layout_marginBottom="16dp"
+                        app:icon="@android:drawable/ic_menu_myplaces"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="12dp"
+                        style="@style/AppButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAdminPage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="דף מנהל"
+                        android:textSize="16sp"
+                        android:padding="16dp"
+                        android:visibility="gone"
+                        android:onClick="goAdminPage"
+                        android:layout_marginBottom="16dp"
+                        app:icon="@android:drawable/ic_menu_manage"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="12dp"
+                        style="@style/AppButton" />
+
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
@@ -151,6 +172,8 @@
         android:layout_gravity="start"
         android:background="@color/white"
         android:fitsSystemWindows="true"
-        app:menu="@menu/menus" />
+        app:menu="@menu/menus"
+        app:itemIconTint="@color/colorPrimary"
+        app:itemTextColor="@color/colorPrimary" />
 
 </androidx.drawerlayout.widget.DrawerLayout> 

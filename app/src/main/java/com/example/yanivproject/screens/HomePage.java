@@ -115,7 +115,15 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
                 if (snapshot.exists()) {
                     String firstName = snapshot.child("firstName").getValue(String.class);
                     String lastName = snapshot.child("lastName").getValue(String.class);
-                    String fullName = firstName + " " + lastName;
+                    
+                    // Handle null values
+                    firstName = (firstName != null) ? firstName : "";
+                    lastName = (lastName != null) ? lastName : "";
+                    
+                    String fullName = (firstName + " " + lastName).trim();
+                    if (fullName.isEmpty()) {
+                        fullName = "משתמש";
+                    }
                     
                     // Update welcome message
                     welcomeText.setText("ברוך הבא, " + fullName + "!");
@@ -128,12 +136,20 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
                     String statsText = String.format("קבוצות פעילות: %d\nאירועים קרובים: %d", 
                         groupsCount, eventsCount);
                     userStatsText.setText(statsText);
+                } else {
+                    // Handle case where user data doesn't exist
+                    welcomeText.setText("ברוך הבא!");
+                    userStatsText.setText("אין נתונים זמינים");
+                    Log.e("HomePage", "User data not found for ID: " + currentUserId);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                welcomeText.setText("ברוך הבא!");
+                userStatsText.setText("שגיאה בטעינת נתונים");
                 Toast.makeText(HomePage.this, "שגיאה בטעינת נתוני משתמש", Toast.LENGTH_SHORT).show();
+                Log.e("HomePage", "Database error: " + error.getMessage());
             }
         });
     }
