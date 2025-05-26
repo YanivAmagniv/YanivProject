@@ -14,7 +14,7 @@ import com.google.firebase.database.Exclude;
 import com.google.firebase.database.PropertyName;
 
 public class Group implements Serializable {
-    private static final long serialVersionUID = 1L;  // Optional
+    private static final long serialVersionUID = 1L;
 
     private String groupId;
     private String groupName;
@@ -23,17 +23,17 @@ public class Group implements Serializable {
     private String type;
     private User creator;
     @PropertyName("userPayList")
-    private Map<String, UserPay> userPayMap;
+    private Object userPayList;  // Changed to Object to handle both formats
     private String splitMethod;
     private double totalAmount;
-    private String paymentDeadline;  // New field for payment deadline
-    private int reminderInterval;    // New field for reminder interval in days
-    private String lastReminderDate; // New field to track last reminder date
+    private String paymentDeadline;
+    private int reminderInterval;
+    private String lastReminderDate;
 
     // No-argument constructor (required by Firebase for deserialization)
     public Group() {
-        this.userPayMap = new HashMap<>();  // Initialize empty map
-        this.reminderInterval = 7; // Default reminder interval: 7 days
+        this.userPayList = new ArrayList<>();
+        this.reminderInterval = 7;
     }
 
     public Group(String groupId, String groupName, String status, String groupDescription, String type, User creator, List<UserPay> userPayList, String splitMethod, double totalAmount) {
@@ -43,15 +43,10 @@ public class Group implements Serializable {
         this.groupDescription = groupDescription;
         this.type = type;
         this.creator = creator;
-        this.userPayMap = new HashMap<>();
-        if (userPayList != null) {
-            for (int i = 0; i < userPayList.size(); i++) {
-                this.userPayMap.put(String.valueOf(i), userPayList.get(i));
-            }
-        }
+        this.userPayList = userPayList != null ? userPayList : new ArrayList<>();
         this.splitMethod = splitMethod;
         this.totalAmount = totalAmount;
-        this.reminderInterval = 7; // Default reminder interval: 7 days
+        this.reminderInterval = 7;
     }
 
     public String getGroupId() {
@@ -103,29 +98,186 @@ public class Group implements Serializable {
     }
 
     @PropertyName("userPayList")
-    public Map<String, UserPay> getUserPayMap() {
-        return userPayMap != null ? userPayMap : new HashMap<>();
+    public Object getUserPayList() {
+        return userPayList;
     }
 
     @PropertyName("userPayList")
-    public void setUserPayMap(Map<String, UserPay> userPayMap) {
-        this.userPayMap = userPayMap != null ? userPayMap : new HashMap<>();
-    }
-
-    @Exclude
-    public List<UserPay> getUserPayList() {
-        if (userPayMap == null) return new ArrayList<>();
-        return new ArrayList<>(userPayMap.values());
-    }
-
-    @Exclude
-    public void setUserPayList(List<UserPay> userPayList) {
-        this.userPayMap = new HashMap<>();
-        if (userPayList != null) {
-            for (int i = 0; i < userPayList.size(); i++) {
-                this.userPayMap.put(String.valueOf(i), userPayList.get(i));
-            }
+    public void setUserPayList(Object userPayList) {
+        if (userPayList instanceof List) {
+            this.userPayList = userPayList;
+        } else if (userPayList instanceof Map) {
+            this.userPayList = userPayList;
+        } else {
+            this.userPayList = new ArrayList<>();
         }
+    }
+
+    @Exclude
+    public List<UserPay> getUserPayListAsList() {
+        if (userPayList == null) {
+            return new ArrayList<>();
+        }
+        
+        try {
+            if (userPayList instanceof List) {
+                List<?> list = (List<?>) userPayList;
+                List<UserPay> result = new ArrayList<>();
+                for (Object item : list) {
+                    if (item instanceof UserPay) {
+                        result.add((UserPay) item);
+                    } else if (item instanceof Map) {
+                        Map<String, Object> userPayMap = (Map<String, Object>) item;
+                        UserPay userPay = new UserPay();
+                        
+                        // Convert the map to UserPay object
+                        if (userPayMap.containsKey("user")) {
+                            Map<String, Object> userMap = (Map<String, Object>) userPayMap.get("user");
+                            User user = new User();
+                            user.setId((String) userMap.get("id"));
+                            user.setFname((String) userMap.get("fname"));
+                            user.setLname((String) userMap.get("lname"));
+                            user.setEmail((String) userMap.get("email"));
+                            user.setPhone((String) userMap.get("phone"));
+                            userPay.setUser(user);
+                        }
+                        
+                        if (userPayMap.containsKey("amount")) {
+                            Object amount = userPayMap.get("amount");
+                            if (amount instanceof Number) {
+                                userPay.setAmount(((Number) amount).doubleValue());
+                            } else if (amount instanceof String) {
+                                userPay.setAmount(Double.parseDouble((String) amount));
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("paid")) {
+                            Object paid = userPayMap.get("paid");
+                            if (paid instanceof Boolean) {
+                                userPay.setPaid((Boolean) paid);
+                            } else if (paid instanceof String) {
+                                userPay.setPaid(Boolean.parseBoolean((String) paid));
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("paymentStatus")) {
+                            String status = (String) userPayMap.get("paymentStatus");
+                            if (status != null) {
+                                try {
+                                    userPay.setPaymentStatus(UserPay.PaymentStatus.valueOf(status));
+                                } catch (IllegalArgumentException e) {
+                                    userPay.setPaymentStatus(UserPay.PaymentStatus.NOT_PAID);
+                                }
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("paymentDate")) {
+                            userPay.setPaymentDate((String) userPayMap.get("paymentDate"));
+                        }
+                        
+                        if (userPayMap.containsKey("remaining")) {
+                            Object remaining = userPayMap.get("remaining");
+                            if (remaining instanceof Number) {
+                                userPay.setRemaining(((Number) remaining).doubleValue());
+                            } else if (remaining instanceof String) {
+                                userPay.setRemaining(Double.parseDouble((String) remaining));
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("totalPaid")) {
+                            Object totalPaid = userPayMap.get("totalPaid");
+                            if (totalPaid instanceof Number) {
+                                userPay.setTotalPaid(((Number) totalPaid).doubleValue());
+                            } else if (totalPaid instanceof String) {
+                                userPay.setTotalPaid(Double.parseDouble((String) totalPaid));
+                            }
+                        }
+                        
+                        result.add(userPay);
+                    }
+                }
+                return result;
+            } else if (userPayList instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) userPayList;
+                List<UserPay> result = new ArrayList<>();
+                for (Object value : map.values()) {
+                    if (value instanceof Map) {
+                        Map<String, Object> userPayMap = (Map<String, Object>) value;
+                        UserPay userPay = new UserPay();
+                        
+                        // Convert the map to UserPay object
+                        if (userPayMap.containsKey("user")) {
+                            Map<String, Object> userMap = (Map<String, Object>) userPayMap.get("user");
+                            User user = new User();
+                            user.setId((String) userMap.get("id"));
+                            user.setFname((String) userMap.get("fname"));
+                            user.setLname((String) userMap.get("lname"));
+                            user.setEmail((String) userMap.get("email"));
+                            user.setPhone((String) userMap.get("phone"));
+                            userPay.setUser(user);
+                        }
+                        
+                        if (userPayMap.containsKey("amount")) {
+                            Object amount = userPayMap.get("amount");
+                            if (amount instanceof Number) {
+                                userPay.setAmount(((Number) amount).doubleValue());
+                            } else if (amount instanceof String) {
+                                userPay.setAmount(Double.parseDouble((String) amount));
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("paid")) {
+                            Object paid = userPayMap.get("paid");
+                            if (paid instanceof Boolean) {
+                                userPay.setPaid((Boolean) paid);
+                            } else if (paid instanceof String) {
+                                userPay.setPaid(Boolean.parseBoolean((String) paid));
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("paymentStatus")) {
+                            String status = (String) userPayMap.get("paymentStatus");
+                            if (status != null) {
+                                try {
+                                    userPay.setPaymentStatus(UserPay.PaymentStatus.valueOf(status));
+                                } catch (IllegalArgumentException e) {
+                                    userPay.setPaymentStatus(UserPay.PaymentStatus.NOT_PAID);
+                                }
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("paymentDate")) {
+                            userPay.setPaymentDate((String) userPayMap.get("paymentDate"));
+                        }
+                        
+                        if (userPayMap.containsKey("remaining")) {
+                            Object remaining = userPayMap.get("remaining");
+                            if (remaining instanceof Number) {
+                                userPay.setRemaining(((Number) remaining).doubleValue());
+                            } else if (remaining instanceof String) {
+                                userPay.setRemaining(Double.parseDouble((String) remaining));
+                            }
+                        }
+                        
+                        if (userPayMap.containsKey("totalPaid")) {
+                            Object totalPaid = userPayMap.get("totalPaid");
+                            if (totalPaid instanceof Number) {
+                                userPay.setTotalPaid(((Number) totalPaid).doubleValue());
+                            } else if (totalPaid instanceof String) {
+                                userPay.setTotalPaid(Double.parseDouble((String) totalPaid));
+                            }
+                        }
+                        
+                        result.add(userPay);
+                    }
+                }
+                return result;
+            }
+        } catch (Exception e) {
+            Log.e("Group", "Error converting userPayList", e);
+        }
+        
+        return new ArrayList<>();
     }
 
     public String getSplitMethod() {
@@ -226,7 +378,7 @@ public class Group implements Serializable {
                 ", groupDescription='" + groupDescription + '\'' +
                 ", type='" + type + '\'' +
                 ", creator=" + creator +
-                ", userPayMap=" + userPayMap +
+                ", userPayList=" + userPayList +
                 ", splitMethod='" + splitMethod + '\'' +
                 ", totalAmount=" + totalAmount +
                 ", paymentDeadline='" + paymentDeadline + '\'' +

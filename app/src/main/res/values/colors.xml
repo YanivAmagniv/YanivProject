@@ -4,33 +4,40 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     
-    <!-- Material Design theme colors -->
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#FF4081</color>
+    <!-- Brand colors -->
+    <color name="colorPrimary">#2E7D32</color>          <!-- Forest Green -->
+    <color name="colorPrimaryDark">#1B5E20</color>      <!-- Darker Green -->
+    <color name="colorAccent">#FFD700</color>           <!-- Gold -->
     
     <!-- Custom theme colors -->
-    <color name="primary">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="primary_light">#BBDEFB</color>
-    <color name="accent">#FF4081</color>
+    <color name="primary">#2E7D32</color>               <!-- Forest Green -->
+    <color name="primary_dark">#1B5E20</color>          <!-- Darker Green -->
+    <color name="primary_light">#81C784</color>         <!-- Light Green -->
+    <color name="accent">#FFD700</color>                <!-- Gold -->
+    <color name="accent_dark">#B8860B</color>           <!-- Dark Goldenrod -->
     
     <!-- UI colors -->
-    <color name="background">#F5F5F5</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="button">#2196F3</color>
-    <color name="buttonPressed">#1565C0</color>
-    <color name="gray">#757575</color>
-    <color name="lightGray">#EEEEEE</color>
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#757575</color>
-    <color name="divider">#E0E0E0</color>
-    <color name="gray_light">#EEEEEE</color>
+    <color name="background">#F0F4F0</color>            <!-- Very Light Sage Green Background -->
+    <color name="surface">#F8F9F8</color>               <!-- Off-White Surface -->
+    <color name="button">#2E7D32</color>                <!-- Forest Green Button -->
+    <color name="buttonPressed">#1B5E20</color>         <!-- Darker Green Pressed -->
+    <color name="gray">#757575</color>                  <!-- Medium Gray -->
+    <color name="lightGray">#EEEEEE</color>             <!-- Light Gray -->
+    <color name="textPrimary">#212121</color>           <!-- Near Black Text -->
+    <color name="textSecondary">#757575</color>         <!-- Secondary Text -->
+    <color name="divider">#E0E0E0</color>               <!-- Divider Color -->
+    <color name="gray_light">#EEEEEE</color>            <!-- Light Gray -->
     
     <!-- Payment status colors -->
-    <color name="status_paid">#4CAF50</color>
-    <color name="status_pending">#FFC107</color>
-    <color name="status_not_paid">#F44336</color>
-    <color name="status_background">#F5F5F5</color>
-    <color name="status_text">#212121</color>
+    <color name="status_paid">#2E7D32</color>           <!-- Green for Paid -->
+    <color name="status_pending">#FFD700</color>        <!-- Gold for Pending -->
+    <color name="status_not_paid">#D32F2F</color>       <!-- Red for Not Paid -->
+    <color name="status_background">#F0F4F0</color>     <!-- Status Background -->
+    <color name="status_text">#212121</color>           <!-- Status Text -->
+    
+    <!-- Additional brand colors -->
+    <color name="gold_light">#FFE5B4</color>            <!-- Light Gold -->
+    <color name="green_light">#C8E6C9</color>           <!-- Light Green -->
+    <color name="green_dark">#1B5E20</color>            <!-- Dark Green -->
+    <color name="gold_dark">#B8860B</color>             <!-- Dark Gold -->
 </resources>

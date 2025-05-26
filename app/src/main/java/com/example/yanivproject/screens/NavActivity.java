@@ -15,6 +15,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.yanivproject.R;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public abstract class NavActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     // Protected variables that child activities can access
@@ -55,6 +59,22 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
 
         // Set up the listener for navigation item clicks
         navigationView.setNavigationItemSelectedListener(this);
+
+        // Check if user is admin and hide admin menu item if not
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
+            userRef.get().addOnSuccessListener(snapshot -> {
+                if (snapshot.exists()) {
+                    Boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
+                    Menu menu = navigationView.getMenu();
+                    MenuItem adminItem = menu.findItem(R.id.nav_admin_page);
+                    if (adminItem != null) {
+                        adminItem.setVisible(isAdmin != null && isAdmin);
+                    }
+                }
+            });
+        }
     }
 
     @Override

@@ -53,14 +53,14 @@ public class NotificationService {
     }
 
     public void sendPaymentReminder(Group group) {
-        if (group == null || group.getUserPayList() == null) return;
+        if (group == null || group.getUserPayListAsList() == null) return;
 
         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         
         // Check if we should send a reminder based on the interval
         if (shouldSendReminder(group, currentDate)) {
             // Get all users who haven't paid yet
-            group.getUserPayList().stream()
+            group.getUserPayListAsList().stream()
                 .filter(userPay -> !userPay.isPaid())
                 .collect(Collectors.toList())
                 .forEach(userPay -> {

@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ExistentGroup extends NavActivity {
     private RecyclerView rvCreatedGroups;
@@ -95,35 +96,54 @@ public class ExistentGroup extends NavActivity {
                 paidGroupsList.clear();
                 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Group group = snapshot.getValue(Group.class);
-                    if (group != null) {
-                        boolean isCreator = group.getCreator() != null && 
-                                         group.getCreator().getId().equals(userId);
-                        boolean isMember = false;
+                    try {
+                        Group group = snapshot.getValue(Group.class);
+                        if (group != null) {
+                            // Log the raw group data for debugging
+                            Log.d("ExistentGroup", "Raw group data: " + snapshot.getValue());
+                            
+                            boolean isCreator = false;
+                            if (group.getCreator() != null) {
+                                isCreator = group.getCreator().getId().equals(userId);
+                                Log.d("ExistentGroup", "Creator check - Group: " + group.getGroupName() + 
+                                    ", Creator ID: " + group.getCreator().getId() + 
+                                    ", Current User ID: " + userId + 
+                                    ", Is Creator: " + isCreator);
+                            } else {
+                                Log.w("ExistentGroup", "Group has no creator: " + group.getGroupName());
+                            }
 
-                        // Check if user is a member
-                        if (group.getUserPayList() != null) {
-                            for (UserPay userPay : group.getUserPayList()) {
-                                if (userPay != null && userPay.getUser() != null && 
-                                    userPay.getUser().getId().equals(userId)) {
-                                    isMember = true;
-                                    break;
+                            boolean isMember = false;
+                            List<UserPay> userPayList = group.getUserPayListAsList();
+                            if (userPayList != null) {
+                                for (UserPay userPay : userPayList) {
+                                    if (userPay != null && userPay.getUser() != null && 
+                                        userPay.getUser().getId().equals(userId)) {
+                                        isMember = true;
+                                        Log.d("ExistentGroup", "Found user as member in group: " + group.getGroupName());
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // Add group to appropriate list
+                            if ("Paid".equals(group.getStatus())) {
+                                if (isCreator || isMember) {
+                                    paidGroupsList.add(group);
+                                    Log.d("ExistentGroup", "Added to paid groups: " + group.getGroupName());
+                                }
+                            } else {
+                                if (isCreator) {
+                                    createdGroupsList.add(group);
+                                    Log.d("ExistentGroup", "Added to created groups: " + group.getGroupName());
+                                } else if (isMember) {
+                                    joinedGroupsList.add(group);
+                                    Log.d("ExistentGroup", "Added to joined groups: " + group.getGroupName());
                                 }
                             }
                         }
-
-                        // Add group to appropriate list
-                        if ("Paid".equals(group.getStatus())) {
-                            if (isCreator || isMember) {
-                                paidGroupsList.add(group);
-                            }
-                        } else {
-                            if (isCreator) {
-                                createdGroupsList.add(group);
-                            } else if (isMember) {
-                                joinedGroupsList.add(group);
-                            }
-                        }
+                    } catch (Exception e) {
+                        Log.e("ExistentGroup", "Error processing group: " + snapshot.getKey(), e);
                     }
                 }
 
@@ -133,11 +153,15 @@ public class ExistentGroup extends NavActivity {
                     rvCreatedGroups.setVisibility(View.GONE);
                     rvJoinedGroups.setVisibility(View.GONE);
                     rvPaidGroups.setVisibility(View.GONE);
+                    Log.d("ExistentGroup", "No groups found for user: " + userId);
                 } else {
                     noGroupsText.setVisibility(View.GONE);
                     rvCreatedGroups.setVisibility(createdGroupsList.isEmpty() ? View.GONE : View.VISIBLE);
                     rvJoinedGroups.setVisibility(joinedGroupsList.isEmpty() ? View.GONE : View.VISIBLE);
                     rvPaidGroups.setVisibility(paidGroupsList.isEmpty() ? View.GONE : View.VISIBLE);
+                    Log.d("ExistentGroup", "Groups found - Created: " + createdGroupsList.size() + 
+                        ", Joined: " + joinedGroupsList.size() + 
+                        ", Paid: " + paidGroupsList.size());
                 }
 
                 createdGroupsAdapter.notifyDataSetChanged();

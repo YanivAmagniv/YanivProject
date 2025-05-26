@@ -102,7 +102,7 @@ public class GroupDetailsActivity extends NavActivity {
             // Set up mark current user paid button
             markCurrentUserPaidButton.setOnClickListener(v -> {
                 // Find the current user's UserPay object
-                for (UserPay userPay : group.getUserPayList()) {
+                for (UserPay userPay : group.getUserPayListAsList()) {
                     if (userPay.getUser().getId().equals(currentUserId)) {
                         if (!userPay.isPaid()) {
                             markPaymentAsPaid(userPay);
@@ -145,8 +145,8 @@ public class GroupDetailsActivity extends NavActivity {
     private void displayUserOwedAmount() {
         double userShare = 0;
 
-        if (group.getUserPayList() != null) {
-            for (UserPay userPay : group.getUserPayList()) {
+        if (group.getUserPayListAsList() != null) {
+            for (UserPay userPay : group.getUserPayListAsList()) {
                 if (userPay.getUser().getId().equals(currentUserId)) {
                     Log.d("DEBUG", "Matched current user: " + currentUserId);
 
@@ -164,7 +164,7 @@ public class GroupDetailsActivity extends NavActivity {
                 }
             }
         } else {
-            Log.e("DEBUG", "group.getUserPayList() is null");
+            Log.e("DEBUG", "group.getUserPayListAsList() is null");
         }
 
         Log.d("DEBUG", "Final User Share: " + userShare);
@@ -182,7 +182,7 @@ public class GroupDetailsActivity extends NavActivity {
             userPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
             
             // Update in Firebase
-            groupRef.child("userPayList").child(String.valueOf(group.getUserPayList().indexOf(userPay))).setValue(userPay)
+            groupRef.child("userPayList").child(String.valueOf(group.getUserPayListAsList().indexOf(userPay))).setValue(userPay)
                 .addOnSuccessListener(aVoid -> {
                     // Send payment complete notification
                     notificationService.sendPaymentCompleteNotification(group, userPay);
@@ -203,7 +203,7 @@ public class GroupDetailsActivity extends NavActivity {
             userPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
             
             // Update in Firebase
-            groupRef.child("userPayList").child(String.valueOf(group.getUserPayList().indexOf(userPay))).setValue(userPay)
+            groupRef.child("userPayList").child(String.valueOf(group.getUserPayListAsList().indexOf(userPay))).setValue(userPay)
                 .addOnSuccessListener(aVoid -> {
                     // Send payment pending notification to creator
                     notificationService.sendPaymentPendingNotification(group, userPay);
@@ -220,7 +220,7 @@ public class GroupDetailsActivity extends NavActivity {
     }
 
     private void checkAndUpdateGroupStatus() {
-        boolean allPaid = group.getUserPayList().stream().allMatch(UserPay::isPaid);
+        boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
         if (allPaid) {
             groupRef.child("status").setValue("Paid")
                 .addOnSuccessListener(aVoid -> {
@@ -241,7 +241,7 @@ public class GroupDetailsActivity extends NavActivity {
         
         boolean isCreator = group.getCreator().getId().equals(currentUserId);
         
-        for (UserPay userPay : group.getUserPayList()) {
+        for (UserPay userPay : group.getUserPayListAsList()) {
             View participantView = getLayoutInflater().inflate(R.layout.item_participant_payment, participantsContainer, false);
             
             TextView nameText = participantView.findViewById(R.id.participant_name);
@@ -293,13 +293,13 @@ public class GroupDetailsActivity extends NavActivity {
     }
 
     private void updatePaymentStatus(UserPay userPay) {
-        groupRef.child("userPayList").child(String.valueOf(group.getUserPayList().indexOf(userPay))).setValue(userPay)
+        groupRef.child("userPayList").child(String.valueOf(group.getUserPayListAsList().indexOf(userPay))).setValue(userPay)
             .addOnSuccessListener(aVoid -> {
                 notificationService.sendPaymentCompleteNotification(group, userPay);
                 Toast.makeText(this, "התשלום אושר בהצלחה", Toast.LENGTH_SHORT).show();
                 
                 // Check if all payments are complete
-                boolean allPaid = group.getUserPayList().stream().allMatch(UserPay::isPaid);
+                boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
                 if (allPaid) {
                     updateGroupStatus("completed");
                 }
@@ -320,7 +320,7 @@ public class GroupDetailsActivity extends NavActivity {
     private void deleteGroup() {
         if (group != null && group.getGroupId() != null) {
             // First, notify all participants about the deletion
-            for (UserPay userPay : group.getUserPayList()) {
+            for (UserPay userPay : group.getUserPayListAsList()) {
                 if (!userPay.getUser().getId().equals(currentUserId)) { // Don't notify the creator
                     notificationService.sendGroupDeletedNotification(group, userPay.getUser());
                 }
@@ -371,7 +371,7 @@ public class GroupDetailsActivity extends NavActivity {
                     groupStatusText.setText(group.getStatus());
                     deadlineCountdownView.setGroup(group);
                     // Check if all users have paid
-                    boolean allPaid = group.getUserPayList().stream().allMatch(UserPay::isPaid);
+                    boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
                     if (allPaid) {
                         updateGroupStatus("completed");
                     }
