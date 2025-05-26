@@ -116,6 +116,8 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
             startActivity(new Intent(this, ExistentGroup.class));
         } else if (id == R.id.nav_user_details) {
             startActivity(new Intent(this, UserDetails.class));
+        } else if (id == R.id.nav_about) {
+            startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_admin_page) {
             startActivity(new Intent(this, AdminActivity.class));
         } else if (id == R.id.nav_logout) {
@@ -137,6 +139,7 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
         else if (id == R.id.nav_new_group) return AddNewEvent.class;
         else if (id == R.id.nav_existent_groups) return ExistentGroup.class;
         else if (id == R.id.nav_user_details) return UserDetails.class;
+        else if (id == R.id.nav_about) return AboutActivity.class;
         else if (id == R.id.nav_admin_page) return AdminActivity.class;
         return null;
     }

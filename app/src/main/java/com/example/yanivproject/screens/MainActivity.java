@@ -48,7 +48,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btnRegister.setOnClickListener(this);
         btnLogin.setOnClickListener(this);
-        btnAbout.setOnClickListener(this);
+        btnAbout.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AboutActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override

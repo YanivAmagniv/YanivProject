@@ -144,6 +144,20 @@
                         style="@style/AppButton" />
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAbout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="אודות"
+                        android:textSize="16sp"
+                        android:padding="16dp"
+                        android:onClick="go_About"
+                        android:layout_marginBottom="16dp"
+                        app:icon="@android:drawable/ic_menu_info_details"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="12dp"
+                        style="@style/AppButton" />
+
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAdminPage"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

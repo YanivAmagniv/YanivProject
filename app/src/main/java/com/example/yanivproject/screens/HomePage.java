@@ -186,6 +186,8 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
             startActivity(new Intent(this, ExistentGroup.class));
         } else if (id == R.id.nav_user_details) {
             startActivity(new Intent(this, UserDetails.class));
+        } else if (id == R.id.nav_about) {
+            startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_admin_page) {
             startActivity(new Intent(this, AdminActivity.class));
         } else if (id == R.id.nav_logout) {
@@ -224,6 +226,10 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
 
     public void go_UserDetails(View view) {
         startActivity(new Intent(this, UserDetails.class));
+    }
+
+    public void go_About(View view) {
+        startActivity(new Intent(this, AboutActivity.class));
     }
 
     public void goAdminPage(View view) {
