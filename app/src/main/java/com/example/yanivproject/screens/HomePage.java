@@ -33,7 +33,6 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
 
     private Button btnAdminPage;
     private TextView welcomeText;
-    private TextView userStatsText;
     private User currentUser;
     private ActionBarDrawerToggle toggle;
     private DrawerLayout drawerLayout;
@@ -54,7 +53,6 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         btnAdminPage = findViewById(R.id.btnAdminPage);
         btnAdminPage.setVisibility(View.GONE); // Default to hidden
         welcomeText = findViewById(R.id.welcomeText);
-        userStatsText = findViewById(R.id.userStatsText);
         drawerLayout = findViewById(R.id.drawer_layout);
 
         // Get current user ID
@@ -127,19 +125,9 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
                     
                     // Update welcome message
                     welcomeText.setText("ברוך הבא, " + fullName + "!");
-                    
-                    // Get user stats
-                    long groupsCount = snapshot.child("groups").getChildrenCount();
-                    long eventsCount = snapshot.child("events").getChildrenCount();
-                    
-                    // Update stats text
-                    String statsText = String.format("קבוצות פעילות: %d\nאירועים קרובים: %d", 
-                        groupsCount, eventsCount);
-                    userStatsText.setText(statsText);
                 } else {
                     // Handle case where user data doesn't exist
                     welcomeText.setText("ברוך הבא!");
-                    userStatsText.setText("אין נתונים זמינים");
                     Log.e("HomePage", "User data not found for ID: " + currentUserId);
                 }
             }
@@ -147,7 +135,6 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 welcomeText.setText("ברוך הבא!");
-                userStatsText.setText("שגיאה בטעינת נתונים");
                 Toast.makeText(HomePage.this, "שגיאה בטעינת נתוני משתמש", Toast.LENGTH_SHORT).show();
                 Log.e("HomePage", "Database error: " + error.getMessage());
             }
