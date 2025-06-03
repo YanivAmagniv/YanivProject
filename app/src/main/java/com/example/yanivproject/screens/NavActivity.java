@@ -99,10 +99,26 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        // Don't navigate if we're already on the selected screen
-        if (this.getClass().getSimpleName().equals(getDestinationActivity(id).getSimpleName())) {
+        // Handle logout separately since it doesn't have a destination activity
+        if (id == R.id.nav_logout) {
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(this, Login.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
+        }
+
+        // Get the destination activity
+        Class<?> destinationActivity = getDestinationActivity(id);
+        
+        // If we have a valid destination activity, check if we're already there
+        if (destinationActivity != null) {
+            if (this.getClass().getSimpleName().equals(destinationActivity.getSimpleName())) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            }
         }
 
         // Start the appropriate activity based on which menu item was clicked
@@ -120,12 +136,6 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
             startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_admin_page) {
             startActivity(new Intent(this, AdminActivity.class));
-        } else if (id == R.id.nav_logout) {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, Login.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
         }
 
         // Close the drawer after handling the click

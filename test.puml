@@ -1,0 +1,150 @@
+@startuml
+class UserPay {
+- {static} long serialVersionUID
+# User user
+# double amount
+# boolean isPaid
+# double totalPaid
+# double remaining
+# String paymentDate
+# PaymentStatus paymentStatus
+# String paymentNote
++ User getUser()
++ void setUser(User)
++ double getAmount()
++ void setAmount(double)
++ boolean isPaid()
++ void setPaid(boolean)
++ double getTotalPaid()
++ void setTotalPaid(double)
++ double getRemaining()
++ void setRemaining(double)
++ String getPaymentDate()
++ void setPaymentDate(String)
++ PaymentStatus getPaymentStatus()
++ void setPaymentStatus(PaymentStatus)
++ String getPaymentNote()
++ void setPaymentNote(String)
++ String toString()
+}
+
+
+enum PaymentStatus {
++  NOT_PAID
++  PENDING_APPROVAL
++  PAID
+}
+
+class MainSplit {
+~ String id
+~ String type
+~ User admin
+~ ArrayList<User> users
+~ int dividedBy
+~ double totalAmount
++ String getStatus()
++ void setStatus(String)
++ String getEventDate()
++ void setEventDate(String)
++ String getDetail()
++ void setDetail(String)
++ String getType()
++ void setType(String)
++ User getAdmin()
++ void setAdmin(User)
++ ArrayList<User> getUsers()
++ void setUsers(ArrayList<User>)
++ int getDividedBy()
++ void setDividedBy(int)
++ double getTotalAmount()
++ void setTotalAmount(double)
++ String getGroupName()
++ void setGroupName(String)
++ String getId()
++ void setId(String)
++ String toString()
+}
+
+
+class Group {
+- {static} long serialVersionUID
+- String groupId
+- String groupName
+- String status
+- String groupDescription
+- String type
+- User creator
+- Object userPayList
+- String splitMethod
+- double totalAmount
+- String paymentDeadline
+- int reminderInterval
+- String lastReminderDate
++ String getGroupId()
++ void setGroupId(String)
++ String getGroupName()
++ void setGroupName(String)
++ String getStatus()
++ void setStatus(String)
++ String getGroupDescription()
++ void setGroupDescription(String)
++ String getType()
++ void setType(String)
++ User getCreator()
++ void setCreator(User)
++ Object getUserPayList()
++ void setUserPayList(Object)
++ List<UserPay> getUserPayListAsList()
++ String getSplitMethod()
++ void setSplitMethod(String)
++ double getTotalAmount()
++ void setTotalAmount(double)
++ String getPaymentDeadline()
++ void setPaymentDeadline(String)
++ long getDaysUntilDeadline()
++ String getDeadlineStatus()
++ int getDeadlineColor()
++ int getReminderInterval()
++ void setReminderInterval(int)
++ String getLastReminderDate()
++ void setLastReminderDate(String)
++ String toString()
+}
+
+
+class User {
+- {static} long serialVersionUID
+# String id
+# String fname
+# String lname
+# String phone
+# String email
+# String password
+# Boolean isAdmin
++ String getId()
++ void setId(String)
++ String getFname()
++ void setFname(String)
++ String getLname()
++ void setLname(String)
++ String getPhone()
++ void setPhone(String)
++ String getEmail()
++ void setEmail(String)
++ String getPassword()
++ void setPassword(String)
++ String getFullName()
++ Boolean getAdmin()
++ void setAdmin(Boolean)
++ String getName()
++ void setName(String)
++ String toString()
+}
+
+
+
+
+Serializable <|.. UserPay
+Serializable <|.. Group
+Serializable <|.. User
+@enduml
