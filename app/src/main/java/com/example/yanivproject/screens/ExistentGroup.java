@@ -127,18 +127,33 @@ public class ExistentGroup extends NavActivity {
                             }
 
                             // Add group to appropriate list
-                            if ("Paid".equals(group.getStatus())) {
-                                if (isCreator || isMember) {
+                            if (isCreator) {
+                                // For creator, only show in paid if all members have paid
+                                boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
+                                if (allPaid) {
                                     paidGroupsList.add(group);
-                                    Log.d("ExistentGroup", "Added to paid groups: " + group.getGroupName());
-                                }
-                            } else {
-                                if (isCreator) {
+                                    Log.d("ExistentGroup", "Added to paid groups (creator): " + group.getGroupName());
+                                } else {
                                     createdGroupsList.add(group);
-                                    Log.d("ExistentGroup", "Added to created groups: " + group.getGroupName());
-                                } else if (isMember) {
+                                    Log.d("ExistentGroup", "Added to created groups (creator): " + group.getGroupName());
+                                }
+                            } else if (isMember) {
+                                // For participants, show in paid if their payment is approved
+                                boolean isPaid = false;
+                                for (UserPay userPay : group.getUserPayListAsList()) {
+                                    if (userPay.getUser().getId().equals(userId) && 
+                                        userPay.getPaymentStatus() == UserPay.PaymentStatus.PAID) {
+                                        isPaid = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (isPaid) {
+                                    paidGroupsList.add(group);
+                                    Log.d("ExistentGroup", "Added to paid groups (participant): " + group.getGroupName());
+                                } else {
                                     joinedGroupsList.add(group);
-                                    Log.d("ExistentGroup", "Added to joined groups: " + group.getGroupName());
+                                    Log.d("ExistentGroup", "Added to joined groups (participant): " + group.getGroupName());
                                 }
                             }
                         }

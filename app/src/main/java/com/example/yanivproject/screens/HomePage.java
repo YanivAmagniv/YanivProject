@@ -111,8 +111,8 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    String firstName = snapshot.child("firstName").getValue(String.class);
-                    String lastName = snapshot.child("lastName").getValue(String.class);
+                    String firstName = snapshot.child("fname").getValue(String.class);
+                    String lastName = snapshot.child("lname").getValue(String.class);
                     
                     // Handle null values
                     firstName = (firstName != null) ? firstName : "";

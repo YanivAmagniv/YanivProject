@@ -60,14 +60,20 @@ public class NotificationService {
         // Check if we should send a reminder based on the interval
         if (shouldSendReminder(group, currentDate)) {
             // Get all users who haven't paid yet
-            group.getUserPayListAsList().stream()
+            List<UserPay> unpaidUsers = group.getUserPayListAsList().stream()
                 .filter(userPay -> !userPay.isPaid())
-                .collect(Collectors.toList())
-                .forEach(userPay -> {
-                    String title = "תזכורת לתשלום";
-                    String message = String.format("לא לשכוח לשלם את החלק שלך בקבוצה %s", group.getGroupName());
-                    sendNotification(userPay.getUser().getId(), title, message);
-                });
+                .collect(Collectors.toList());
+
+            Log.d(TAG, "Sending reminders to " + unpaidUsers.size() + " unpaid members");
+            
+            unpaidUsers.forEach(userPay -> {
+                String title = "תזכורת לתשלום";
+                String message = String.format("לא לשכוח לשלם את החלק שלך בסך ₪%.2f בקבוצה %s", 
+                    userPay.getAmount(), 
+                    group.getGroupName());
+                Log.d(TAG, "Sending reminder to user: " + userPay.getUser().getId());
+                sendNotification(userPay.getUser().getId(), title, message);
+            });
 
             // Update last reminder date
             updateLastReminderDate(group.getGroupId(), currentDate);
@@ -130,31 +136,15 @@ public class NotificationService {
     }
 
     public void sendPaymentCompleteNotification(Group group, UserPay userPay) {
-        Intent intent = new Intent(context, GroupDetailsActivity.class);
-        intent.putExtra("group", group);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-            context,
-            group.getGroupId().hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        String title = "תשלום אושר";
+        String message = String.format("התשלום שלך בסך ₪%.2f בקבוצה %s אושר",
+                userPay.getAmount(),
+                group.getGroupName());
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.smartsplitlogo)
-            .setContentTitle("תשלום הושלם - " + group.getGroupName())
-            .setContentText(userPay.getUser().getName() + " שילם את חלקו")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true);
-
-        NotificationManager notificationManager = 
-            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        
-        if (notificationManager != null) {
-            notificationManager.notify(group.getGroupId().hashCode(), builder.build());
-        }
+        // Send notification to the member who made the payment
+        String memberId = userPay.getUser().getId();
+        Log.d(TAG, "Sending payment complete notification to member: " + memberId);
+        sendNotification(memberId, title, message);
     }
 
     public void sendPaymentPendingNotification(Group group, UserPay userPay) {
@@ -165,7 +155,9 @@ public class NotificationService {
                 group.getGroupName());
 
         // Send notification to group creator
-        sendNotification(group.getCreator().getId(), title, message);
+        String creatorId = group.getCreator().getId();
+        Log.d(TAG, "Sending payment pending notification to creator: " + creatorId);
+        sendNotification(creatorId, title, message);
     }
 
     private void sendNotification(String userId, String title, String message) {
@@ -191,6 +183,7 @@ public class NotificationService {
             (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         
         if (notificationManager != null) {
+            Log.d(TAG, "Sending notification to user: " + userId);
             notificationManager.notify(userId.hashCode(), builder.build());
         }
     }
@@ -199,7 +192,8 @@ public class NotificationService {
         String title = "קבוצה נמחקה";
         String message = String.format("הקבוצה '%s' נמחקה על ידי מנהל הקבוצה", group.getGroupName());
 
-        // Send notification to the specified user
+        // Send notification to the specified user (who is not the creator)
+        Log.d(TAG, "Sending group deleted notification to user: " + user.getId());
         sendNotification(user.getId(), title, message);
     }
 } 

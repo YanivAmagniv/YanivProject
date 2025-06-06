@@ -6,7 +6,6 @@ import androidx.annotation.Nullable;
 
 
 import com.example.yanivproject.models.Group;
-import com.example.yanivproject.models.MainSplit;
 import com.example.yanivproject.models.User;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -154,27 +153,8 @@ public class DatabaseService {
         getData("Users/" + uid, User.class, callback);
     }
 
-    public void createNewMainSplit(@NotNull final MainSplit mainSplit, @Nullable final DatabaseCallback<Void> callback) {
-        writeData("groups/" + mainSplit.getId(), mainSplit, callback);
-    }
-    public void getSplit(@NotNull final String uid, @NotNull final DatabaseCallback<MainSplit> callback) {
-        getData("groups/" + uid, MainSplit.class, callback);
-    }
-
-
-
-
-    /// generate a new id for a new food in the database
-    /// @return a new id for the food
-    /// @see #generateNewId(String)
-    /// @see Food
-   /// public String generateMainSplitId() {
-  ///      return generateNewId("groups");
-  ///  }
-
-
-/// generate a new id for a new group in the database
-/// @return a new id for the group
+    /// generate a new id for a new group in the database
+    /// @return a new id for the group
     public String generateGroupId() {
         return generateNewId("groups");
     }
