@@ -20,6 +20,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.User;
+import com.example.yanivproject.services.NotificationService;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,8 +29,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.ChildEventListener;
 
-public class HomePage extends NavActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class HomePage extends NavActivity implements NavigationView.OnNavigationItemSelectedListener, ChildEventListener {
 
     private Button btnAdminPage;
     private TextView welcomeText;
@@ -37,6 +39,7 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
     private ActionBarDrawerToggle toggle;
     private DrawerLayout drawerLayout;
     private String currentUserId;
+    private NotificationService notificationService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,12 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home_page);
         setupNavigationDrawer();
+
+        // Initialize NotificationService
+        notificationService = new NotificationService(this);
+
+        // Set up notification listener
+        setupNotificationListener();
 
         // Set up the Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -160,6 +169,53 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         Log.d("AdminCheck", "Current UID: " + currentUser.getUid());
     }
 
+    private void setupNotificationListener() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications")
+                .child(currentUser.getUid());
+            
+            notificationsRef.addChildEventListener(this);
+        }
+    }
+
+    @Override
+    public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
+        if (snapshot.exists()) {
+            String title = snapshot.child("title").getValue(String.class);
+            String message = snapshot.child("message").getValue(String.class);
+            if (title != null && message != null) {
+                notificationService.showLocalNotification(title, message);
+            }
+        }
+    }
+
+    @Override
+    public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {}
+
+    @Override
+    public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+
+    @Override
+    public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {}
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError error) {
+        Log.e("HomePage", "Database error: " + error.getMessage());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove the listener when the activity is destroyed
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications")
+                .child(currentUser.getUid());
+            notificationsRef.removeEventListener(this);
+        }
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -199,6 +255,8 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
     public void onBackPressed() {
         if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 

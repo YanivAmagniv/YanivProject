@@ -29,9 +29,12 @@ import com.example.yanivproject.services.NotificationService;
 import com.example.yanivproject.views.DeadlineCountdownView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.ChildEventListener;
 
 import java.util.List;
 
@@ -42,7 +45,6 @@ public class GroupDetailsActivity extends NavActivity {
     private DatabaseReference groupRef;
     private TextView userAmountDueText;
     private String currentUserId;
-
     private int numberOfParticipants;
     private double userOwedAmount;
     private NotificationService notificationService;
@@ -147,6 +149,11 @@ public class GroupDetailsActivity extends NavActivity {
         deleteButton.setVisibility(isCreator ? View.VISIBLE : View.GONE);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
     // Utility method to format currency
     private String getSplittingMethod(double amount) {
         return String.format(Locale.US, "$%.2f", amount);
@@ -206,7 +213,7 @@ public class GroupDetailsActivity extends NavActivity {
                     userPayList.set(i, currentUserPay);
                     groupRef.child("userPayList").setValue(userPayList)
                         .addOnSuccessListener(aVoid -> {
-                            // Send payment complete notification to the member
+                            // Send payment complete notification only to the member
                             notificationService.sendPaymentCompleteNotification(group, currentUserPay);
                             
                             // Check if all payments are complete
@@ -240,7 +247,7 @@ public class GroupDetailsActivity extends NavActivity {
                     userPayList.set(i, currentUserPay);
                     groupRef.child("userPayList").setValue(userPayList)
                         .addOnSuccessListener(aVoid -> {
-                            // Send payment pending notification to creator
+                            // Send payment pending notification only to creator
                             notificationService.sendPaymentPendingNotification(group, currentUserPay);
                             Toast.makeText(this, "Payment request sent for approval", Toast.LENGTH_SHORT).show();
                             

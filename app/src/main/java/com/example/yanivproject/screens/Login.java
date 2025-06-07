@@ -28,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class Login extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
     EditText etEmail, etPassword;
@@ -95,9 +96,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Ad
             public void onCompleted(String id) {
                 // Sign in success, update UI with the signed-in user's information
                 Log.d("TAG", "signInWithEmail:success");
-
-                Intent go = new Intent(getApplicationContext(), HomePage.class);
-                startActivity(go);
+                handleSuccessfulLogin(id);
             }
 
             @Override
@@ -110,6 +109,35 @@ public class Login extends AppCompatActivity implements View.OnClickListener, Ad
             }
         });
 
+    }
+
+    private void handleSuccessfulLogin(String userId) {
+        Log.d("Login", "Handling successful login for user: " + userId);
+        // Get and store FCM token
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    String token = task.getResult();
+                    Log.d("Login", "Got FCM token: " + token);
+                    // Store the token in the database
+                    FirebaseDatabase.getInstance().getReference("users")
+                        .child(userId)
+                        .child("fcmToken")
+                        .setValue(token)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("Login", "FCM token stored successfully");
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("Login", "Error storing FCM token", e);
+                        });
+                } else {
+                    Log.e("Login", "Failed to get FCM token", task.getException());
+                }
+            });
+
+        // Continue with your existing login success code
+        Intent go = new Intent(getApplicationContext(), HomePage.class);
+        startActivity(go);
     }
 
 

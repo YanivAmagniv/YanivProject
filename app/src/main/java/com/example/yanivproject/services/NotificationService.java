@@ -16,12 +16,14 @@ import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
 import com.example.yanivproject.screens.GroupDetailsActivity;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -43,7 +45,7 @@ public class NotificationService {
             NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 "Payment Reminders",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             );
             channel.setDescription("Notifications for payment reminders and updates");
             
@@ -53,31 +55,31 @@ public class NotificationService {
     }
 
     public void sendPaymentReminder(Group group) {
-        if (group == null || group.getUserPayListAsList() == null) return;
-
-        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        
-        // Check if we should send a reminder based on the interval
-        if (shouldSendReminder(group, currentDate)) {
-            // Get all users who haven't paid yet
-            List<UserPay> unpaidUsers = group.getUserPayListAsList().stream()
-                .filter(userPay -> !userPay.isPaid())
-                .collect(Collectors.toList());
-
-            Log.d(TAG, "Sending reminders to " + unpaidUsers.size() + " unpaid members");
-            
-            unpaidUsers.forEach(userPay -> {
-                String title = "תזכורת לתשלום";
-                String message = String.format("לא לשכוח לשלם את החלק שלך בסך ₪%.2f בקבוצה %s", 
-                    userPay.getAmount(), 
-                    group.getGroupName());
-                Log.d(TAG, "Sending reminder to user: " + userPay.getUser().getId());
-                sendNotification(userPay.getUser().getId(), title, message);
-            });
-
-            // Update last reminder date
-            updateLastReminderDate(group.getGroupId(), currentDate);
+        if (group == null || group.getUserPayListAsList() == null) {
+            Log.e(TAG, "Group or userPayList is null");
+            return;
         }
+
+        Log.d(TAG, "Getting unpaid users for immediate reminder");
+        // Get all users who haven't paid yet, excluding the creator
+        List<UserPay> unpaidUsers = group.getUserPayListAsList().stream()
+            .filter(userPay -> !userPay.isPaid() && !userPay.getUser().getId().equals(group.getCreator().getId()))
+            .collect(Collectors.toList());
+
+        Log.d(TAG, "Found " + unpaidUsers.size() + " unpaid users to notify");
+        
+        unpaidUsers.forEach(userPay -> {
+            String title = "תזכורת לתשלום";
+            String message = String.format("לא לשכוח לשלם את החלק שלך בסך ₪%.2f בקבוצה %s", 
+                userPay.getAmount(), 
+                group.getGroupName());
+            Log.d(TAG, "Preparing to send reminder to user: " + userPay.getUser().getId());
+            sendNotification(userPay.getUser().getId(), title, message);
+        });
+
+        // Update last reminder date
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        updateLastReminderDate(group.getGroupId(), currentDate);
     }
 
     private boolean shouldSendReminder(Group group, String currentDate) {
@@ -141,7 +143,7 @@ public class NotificationService {
                 userPay.getAmount(),
                 group.getGroupName());
 
-        // Send notification to the member who made the payment
+        // Send notification only to the member who made the payment
         String memberId = userPay.getUser().getId();
         Log.d(TAG, "Sending payment complete notification to member: " + memberId);
         sendNotification(memberId, title, message);
@@ -154,19 +156,45 @@ public class NotificationService {
                 userPay.getAmount(),
                 group.getGroupName());
 
-        // Send notification to group creator
+        // Send notification only to group creator
         String creatorId = group.getCreator().getId();
         Log.d(TAG, "Sending payment pending notification to creator: " + creatorId);
         sendNotification(creatorId, title, message);
     }
 
     private void sendNotification(String userId, String title, String message) {
+        Log.d(TAG, "Attempting to send notification to user: " + userId);
+        
+        // Create a notification in the database
+        HashMap<String, String> notification = new HashMap<>();
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("timestamp", String.valueOf(System.currentTimeMillis()));
+
+        databaseReference.child("notifications")
+            .child(userId)
+            .push()
+            .setValue(notification)
+            .addOnSuccessListener(aVoid -> {
+                Log.d(TAG, "Notification sent successfully to user: " + userId);
+                // Only show local notification if this is the current user
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                if (userId.equals(currentUserId)) {
+                    showLocalNotification(title, message);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error sending notification to user: " + userId, e);
+            });
+    }
+
+    public void showLocalNotification(String title, String message) {
         Intent intent = new Intent(context, GroupDetailsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         
         PendingIntent pendingIntent = PendingIntent.getActivity(
             context,
-            userId.hashCode(),
+            0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -175,7 +203,7 @@ public class NotificationService {
             .setSmallIcon(R.drawable.smartsplitlogo)
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true);
 
@@ -183,8 +211,7 @@ public class NotificationService {
             (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         
         if (notificationManager != null) {
-            Log.d(TAG, "Sending notification to user: " + userId);
-            notificationManager.notify(userId.hashCode(), builder.build());
+            notificationManager.notify((int) System.currentTimeMillis(), builder.build());
         }
     }
 
