@@ -1,3 +1,8 @@
+// AuthenticationService.java
+// This service handles all Firebase Authentication operations for the app
+// It provides methods for user sign-in, sign-up, sign-out, and session management
+// Implements the Singleton pattern to ensure a single instance throughout the app
+
 package com.example.yanivproject.services;
 
 import android.util.Log;
@@ -7,10 +12,11 @@ import com.google.firebase.auth.FirebaseUser;
 
 import org.jetbrains.annotations.NotNull;
 
-
-/// a service to interact with the Firebase Authentication.
-/// this class is a singleton, use getInstance() to get an instance of this class
-/// @see FirebaseAuth
+/**
+ * Service class for handling Firebase Authentication operations
+ * This class implements the Singleton pattern to ensure a single instance
+ * throughout the application lifecycle
+ */
 public class AuthenticationService {
 
     /// tag for logging

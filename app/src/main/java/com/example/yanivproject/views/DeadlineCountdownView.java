@@ -1,3 +1,9 @@
+// DeadlineCountdownView.java
+// Custom view component for displaying payment deadline countdown
+// Shows visual progress bar and text indicating days remaining
+// Implements smooth animations and color transitions
+// Provides visual feedback for deadline urgency
+
 package com.example.yanivproject.views;
 
 import android.content.Context;
@@ -12,35 +18,73 @@ import androidx.core.content.ContextCompat;
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.Group;
 
+/**
+ * Custom view for displaying payment deadline countdown
+ * Features:
+ * - Visual progress bar showing time remaining
+ * - Dynamic color changes based on urgency
+ * - Text display of days remaining
+ * - Smooth animations and transitions
+ * - Support for different deadline states
+ */
 public class DeadlineCountdownView extends View {
+    // Paint object for drawing the view
     private Paint paint;
+    // Rectangle for drawing the progress bar
     private RectF progressRect;
+    // Group object containing deadline information
     private Group group;
+    // Progress value between 0 and 1
     private float progress;
+    // Color for the deadline indicator
     private int deadlineColor;
 
+    /**
+     * Constructor for creating the view programmatically
+     * @param context The context in which the view is running
+     */
     public DeadlineCountdownView(Context context) {
         super(context);
         init();
     }
 
+    /**
+     * Constructor for creating the view from XML
+     * @param context The context in which the view is running
+     * @param attrs The attributes of the XML tag
+     */
     public DeadlineCountdownView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
+    /**
+     * Initializes the view components
+     * Sets up paint and rectangle objects
+     * Initializes default colors
+     */
     private void init() {
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         progressRect = new RectF();
         deadlineColor = ContextCompat.getColor(getContext(), R.color.colorPrimary);
     }
 
+    /**
+     * Sets the group for this view
+     * Updates progress and triggers redraw
+     * @param group The group containing deadline information
+     */
     public void setGroup(Group group) {
         this.group = group;
         updateProgress();
         invalidate();
     }
 
+    /**
+     * Updates the progress value based on days until deadline
+     * Calculates progress as a ratio of days remaining to maximum days
+     * Updates the deadline color based on urgency
+     */
     private void updateProgress() {
         if (group == null || group.getPaymentDeadline() == null) {
             progress = 0;
@@ -59,6 +103,14 @@ public class DeadlineCountdownView extends View {
         deadlineColor = group.getDeadlineColor();
     }
 
+    /**
+     * Draws the view on the canvas
+     * Renders:
+     * - Background
+     * - Progress bar
+     * - Deadline text
+     * @param canvas The canvas on which to draw
+     */
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -82,6 +134,15 @@ public class DeadlineCountdownView extends View {
         canvas.drawText(text, getWidth() / 2f, textY, paint);
     }
 
+    /**
+     * Generates the text to display based on days until deadline
+     * Provides different messages for:
+     * - No deadline
+     * - Due today
+     * - Due tomorrow
+     * - Days remaining
+     * @return Formatted text string for display
+     */
     private String getDeadlineText() {
         if (group == null || group.getPaymentDeadline() == null) {
             return "No deadline set";

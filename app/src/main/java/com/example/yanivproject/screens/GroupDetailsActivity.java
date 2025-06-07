@@ -1,3 +1,9 @@
+// GroupDetailsActivity.java
+// This activity displays detailed information about a group
+// Handles group management, payment tracking, and user interactions
+// Implements real-time updates and notifications
+// Manages payment approvals, reminders, and group status updates
+
 package com.example.yanivproject.screens;
 
 import android.annotation.SuppressLint;
@@ -38,18 +44,41 @@ import com.google.firebase.database.ChildEventListener;
 
 import java.util.List;
 
+/**
+ * Activity for displaying and managing group details
+ * Features:
+ * - Real-time group information display
+ * - Payment tracking and management
+ * - User role-based interactions
+ * - Payment approval workflow
+ * - Deadline countdown visualization
+ * - Group status updates
+ * - Payment reminders
+ */
 public class GroupDetailsActivity extends NavActivity {
-    private TextView groupNameText, groupDescriptionText, groupTypeText, groupTotalAmountText, groupStatusText, groupOwnerText;
-    private Button deleteButton;
-    private Group group;
-    private DatabaseReference groupRef;
-    private TextView userAmountDueText;
-    private String currentUserId;
-    private int numberOfParticipants;
-    private double userOwedAmount;
-    private NotificationService notificationService;
-    private DeadlineCountdownView deadlineCountdownView;
+    // UI Components for displaying group information
+    private TextView groupNameText;        // Displays the group name
+    private TextView groupDescriptionText; // Displays the group description
+    private TextView groupTypeText;        // Displays the group type
+    private TextView groupTotalAmountText; // Displays the total amount
+    private TextView groupStatusText;      // Displays the group status
+    private TextView groupOwnerText;       // Displays the group creator
+    private Button deleteButton;           // Button to delete the group
+    private Group group;                   // Current group object
+    private DatabaseReference groupRef;    // Firebase reference to the group
+    private TextView userAmountDueText;    // Displays amount due by current user
+    private String currentUserId;          // ID of the currently logged-in user
+    private int numberOfParticipants;      // Number of participants in the group
+    private double userOwedAmount;         // Amount owed by current user
+    private NotificationService notificationService;  // Service for handling notifications
+    private DeadlineCountdownView deadlineCountdownView;  // Custom view for deadline countdown
+    private ValueEventListener valueEventListener;
 
+    /**
+     * Called when the activity is first created
+     * Initializes UI components and sets up group data
+     * @param savedInstanceState Bundle containing the activity's previously saved state
+     */
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +86,50 @@ public class GroupDetailsActivity extends NavActivity {
         setContentView(R.layout.activity_group_details);
         setupNavigationDrawer();
 
-        // Initialize NotificationService
+        // Initialize notification service for payment notifications
         notificationService = new NotificationService(this);
 
-        // Initialize Views
+        // Initialize all UI components
+        initializeViews();
+
+        // Get group data passed from previous activity
+        group = (Group) getIntent().getSerializableExtra("group");
+
+        if (group != null) {
+            // Set up Firebase reference for this group
+            groupRef = FirebaseDatabase.getInstance().getReference("groups").child(group.getGroupId());
+
+            // Set up real-time updates
+            setupRealtimeUpdates();
+
+            // Display group information
+            displayGroupDetails();
+
+            // Set up current user's payment information
+            setupCurrentUserPayment();
+
+            // Set up payment marking functionality
+            setupPaymentMarking();
+
+            // Update participant list
+            updateParticipantsList();
+
+            // Set up deadline countdown
+            deadlineCountdownView.setGroup(group);
+        } else {
+            Log.e("GroupDetailsActivity", "Group is null. Could not retrieve group details.");
+            Toast.makeText(this, "Failed to load group details.", Toast.LENGTH_SHORT).show();
+        }
+
+        // Set up delete functionality for group creator
+        setupDeleteButton();
+    }
+
+    /**
+     * Initializes all UI components
+     * Finds and sets up views for user interaction
+     */
+    private void initializeViews() {
         groupNameText = findViewById(R.id.group_name);
         groupDescriptionText = findViewById(R.id.group_description);
         groupTypeText = findViewById(R.id.group_type);
@@ -70,403 +139,429 @@ public class GroupDetailsActivity extends NavActivity {
         deleteButton = findViewById(R.id.delete_button);
         deadlineCountdownView = findViewById(R.id.deadline_countdown);
         Button markCurrentUserPaidButton = findViewById(R.id.btnMarkCurrentUserPaid);
-
         userAmountDueText = findViewById(R.id.user_amount_due);
+    }
 
-        // Retrieve the group object passed from the adapter
-        group = (Group) getIntent().getSerializableExtra("group");
+    /**
+     * Displays group details in the UI
+     * Updates all text views with group information
+     */
+    private void displayGroupDetails() {
+        groupNameText.setText(group.getGroupName());
+        groupDescriptionText.setText(group.getGroupDescription() != null ? group.getGroupDescription() : "No description available");
+        groupTypeText.setText(group.getType());
+        groupTotalAmountText.setText(" " + getSplittingMethod(group.getTotalAmount()));
+        groupStatusText.setText(group.getStatus());
+        groupOwnerText.setText(group.getCreator().getName());
+    }
 
-        if (group != null) {
-            groupRef = FirebaseDatabase.getInstance().getReference("groups").child(group.getGroupId());
-
-            // Set group details to the views
-            groupNameText.setText(group.getGroupName());
-            groupDescriptionText.setText(group.getGroupDescription() != null ? group.getGroupDescription() : "No description available");
-            groupTypeText.setText(group.getType());
-            groupTotalAmountText.setText(" " + getSplittingMethod(group.getTotalAmount()));
-            groupStatusText.setText(group.getStatus());
-            groupOwnerText.setText(group.getCreator().getName());
-
-            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-            if (firebaseUser != null) {
-                currentUserId = firebaseUser.getUid();
-                // Calculate and display the user's owed amount
-                displayUserOwedAmount();
-            } else {
-                Log.e("GroupDetailsActivity", "User not logged in");
-            }
-
-            // Set up mark current user paid button
-            markCurrentUserPaidButton.setOnClickListener(v -> {
-                // Find the current user's UserPay object
-                for (UserPay userPay : group.getUserPayListAsList()) {
-                    if (userPay.getUser().getId().equals(currentUserId)) {
-                        if (!userPay.isPaid()) {
-                            markPaymentAsPaid(userPay);
-                        } else {
-                            Toast.makeText(this, "You have already marked your payment as complete", Toast.LENGTH_SHORT).show();
-                        }
-                        break;
-                    }
-                }
-            });
-
-            // Prepare participant names
-            updateParticipantsList();
-
-            // Check if current user is creator and part of the group
-            boolean isCreator = group.getCreator().getId().equals(currentUserId);
-            boolean isPartOfGroup = false;
-            for (UserPay userPay : group.getUserPayListAsList()) {
-                if (userPay.getUser().getId().equals(currentUserId)) {
-                    isPartOfGroup = true;
-                    break;
-                }
-            }
-
-            // Show mark payment button only if:
-            // 1. User is not the creator, OR
-            // 2. User is the creator AND is part of the group
-            markCurrentUserPaidButton.setVisibility((!isCreator || (isCreator && isPartOfGroup)) ? View.VISIBLE : View.GONE);
-
-            // Disable mark current user paid button if already paid
-            if ("Paid".equals(group.getStatus())) {
-                markCurrentUserPaidButton.setEnabled(false);
-            }
-
-            // Set up deadline countdown
-            deadlineCountdownView.setGroup(group);
+    /**
+     * Sets up current user's payment information
+     * Retrieves user ID and displays owed amount
+     */
+    private void setupCurrentUserPayment() {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            currentUserId = firebaseUser.getUid();
+            displayUserOwedAmount();
         } else {
-            Log.e("GroupDetailsActivity", "Group is null. Could not retrieve group details.");
-            Toast.makeText(this, "Failed to load group details.", Toast.LENGTH_SHORT).show();
+            Log.e("GroupDetailsActivity", "User not logged in");
         }
-
-        // Set up delete button
-        deleteButton.setOnClickListener(v -> deleteGroup());
-        
-        // Show delete button only for group creator
-        boolean isCreator = group != null && group.getCreator().getId().equals(currentUserId);
-        deleteButton.setVisibility(isCreator ? View.VISIBLE : View.GONE);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    // Utility method to format currency
+    /**
+     * Formats currency values with proper locale
+     * @param amount The amount to format
+     * @return Formatted currency string
+     */
     private String getSplittingMethod(double amount) {
         return String.format(Locale.US, "$%.2f", amount);
     }
 
+    /**
+     * Calculates and displays the amount owed by current user
+     * Handles different splitting methods (equal, percentage, custom)
+     */
     private void displayUserOwedAmount() {
         double userShare = 0;
         String splitMethod = group.getSplitMethod();
-        Log.d("DEBUG", "Split Method: " + splitMethod);
-        Log.d("DEBUG", "Current User ID: " + currentUserId);
-        Log.d("DEBUG", "UserPayList size: " + (group.getUserPayListAsList() != null ? group.getUserPayListAsList().size() : "null"));
-
+        
         if (group.getUserPayListAsList() != null) {
             for (UserPay userPay : group.getUserPayListAsList()) {
-                Log.d("DEBUG", "Checking user: " + userPay.getUser().getId() + " with amount: " + userPay.getAmount());
                 if (userPay.getUser().getId().equals(currentUserId)) {
-                    Log.d("DEBUG", "Matched current user: " + currentUserId);
-
+                    // Calculate share based on split method
                     if (splitMethod.equals("חלוקה לפי אחוזים")) {
                         userShare = (userPay.getAmount() / group.getTotalAmount()) * 100;
                         userAmountDueText.setText(getCurrencyString(userPay.getAmount()) + " (" + String.format("%.1f%%", userShare) + ")");
-                        Log.d("DEBUG", "Percentage split - Amount: " + userPay.getAmount() + ", Share: " + userShare + "%");
                     } else if (splitMethod.equals("חלוקה מותאמת אישית")) {
                         userShare = userPay.getAmount();
                         userAmountDueText.setText(getCurrencyString(userShare) + " (Custom Amount)");
-                        Log.d("DEBUG", "Custom split - Amount: " + userShare);
                     } else { // Equal split
                         userShare = userPay.getAmount();
                         userAmountDueText.setText(getCurrencyString(userShare) + " (Equal Share)");
-                        Log.d("DEBUG", "Equal split - Amount: " + userShare);
                     }
                     break;
                 }
             }
         } else {
-            Log.e("DEBUG", "group.getUserPayListAsList() is null");
             userAmountDueText.setText("Amount cannot be calculated");
         }
     }
 
+    /**
+     * Handles marking a payment as paid
+     * Different behavior for creator and regular users
+     * @param userPay The payment to mark as paid
+     */
     private void markPaymentAsPaid(UserPay userPay) {
-        // Check if current user is the group creator
         boolean isCreator = group.getCreator().getId().equals(currentUserId);
-        
-        // Find the correct user in the list
         List<UserPay> userPayList = group.getUserPayListAsList();
+        
         for (int i = 0; i < userPayList.size(); i++) {
             UserPay currentUserPay = userPayList.get(i);
             if (currentUserPay.getUser().getId().equals(userPay.getUser().getId())) {
                 if (isCreator) {
                     // Creator can directly approve payments
-                    currentUserPay.setPaymentStatus(UserPay.PaymentStatus.PAID);
-                    currentUserPay.setPaid(true);
-                    currentUserPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
-                    
-                    // Update the entire userPayList in Firebase
-                    userPayList.set(i, currentUserPay);
-                    groupRef.child("userPayList").setValue(userPayList)
-                        .addOnSuccessListener(aVoid -> {
-                            // Send payment complete notification only to the member
-                            notificationService.sendPaymentCompleteNotification(group, currentUserPay);
-                            
-                            // Check if all payments are complete
-                            boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
-                            if (allPaid) {
-                                // Only update group status to "Paid" if all members have paid
-                                groupRef.child("status").setValue("Paid")
-                                    .addOnSuccessListener(statusVoid -> {
-                                        group.setStatus("Paid");
-                                        groupStatusText.setText("Paid");
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(this, "Error updating group status", Toast.LENGTH_SHORT).show();
-                                        Log.e("GroupDetailsActivity", "Error updating group status", e);
-                                    });
-                            }
-                            
-                            // Refresh the UI
-                            updateParticipantsList();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(this, "Error updating payment status", Toast.LENGTH_SHORT).show();
-                            Log.e("GroupDetailsActivity", "Error updating payment status", e);
-                        });
+                    handleCreatorPaymentApproval(currentUserPay, i, userPayList);
                 } else {
                     // Regular user can only mark as pending
-                    currentUserPay.setPaymentStatus(UserPay.PaymentStatus.PENDING_APPROVAL);
-                    currentUserPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
-                    
-                    // Update the entire userPayList in Firebase
-                    userPayList.set(i, currentUserPay);
-                    groupRef.child("userPayList").setValue(userPayList)
-                        .addOnSuccessListener(aVoid -> {
-                            // Send payment pending notification only to creator
-                            notificationService.sendPaymentPendingNotification(group, currentUserPay);
-                            Toast.makeText(this, "Payment request sent for approval", Toast.LENGTH_SHORT).show();
-                            
-                            // Refresh the UI
-                            updateParticipantsList();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(this, "Error sending payment request", Toast.LENGTH_SHORT).show();
-                            Log.e("GroupDetailsActivity", "Error updating payment status", e);
-                        });
+                    handleUserPaymentPending(currentUserPay, i, userPayList);
                 }
                 break;
             }
         }
     }
 
-    private void checkAndUpdateGroupStatus() {
-        boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
-        if (allPaid) {
-            groupRef.child("status").setValue("Paid")
+    /**
+     * Handles payment approval by group creator
+     * Updates payment status and sends notifications
+     * @param currentUserPay The payment to approve
+     * @param index Index of the payment in the list
+     * @param userPayList List of all payments
+     */
+    private void handleCreatorPaymentApproval(UserPay currentUserPay, int index, List<UserPay> userPayList) {
+        currentUserPay.setPaymentStatus(UserPay.PaymentStatus.PAID);
+        currentUserPay.setPaid(true);
+        currentUserPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+        
+        // Update payment status in Firebase
+        userPayList.set(index, currentUserPay);
+        groupRef.child("userPayList").setValue(userPayList)
+            .addOnSuccessListener(aVoid -> {
+                // Send notification to member
+                notificationService.sendPaymentCompleteNotification(group, currentUserPay);
+                
+                // Check if all payments are complete
+                checkAndUpdateGroupStatus();
+                
+                // Refresh UI
+                updateParticipantsList();
+            })
+            .addOnFailureListener(e -> {
+                Log.e("GroupDetailsActivity", "Failed to update payment status", e);
+                Toast.makeText(this, "Failed to update payment status", Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    /**
+     * Handles payment pending status for regular users
+     * Updates payment status and sends notifications
+     * @param currentUserPay The payment to mark as pending
+     * @param index Index of the payment in the list
+     * @param userPayList List of all payments
+     */
+    private void handleUserPaymentPending(UserPay currentUserPay, int index, List<UserPay> userPayList) {
+        // Only proceed if the payment is not already pending
+        if (currentUserPay.getPaymentStatus() != UserPay.PaymentStatus.PENDING_APPROVAL) {
+            currentUserPay.setPaymentStatus(UserPay.PaymentStatus.PENDING_APPROVAL);
+            currentUserPay.setPaid(false);
+            currentUserPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+            
+            // Update payment status in Firebase
+            userPayList.set(index, currentUserPay);
+            groupRef.child("userPayList").setValue(userPayList)
                 .addOnSuccessListener(aVoid -> {
-                    group.setStatus("Paid");
-                    groupStatusText.setText("Paid");
-                    Toast.makeText(this, "כל התשלומים הושלמו בהצלחה", Toast.LENGTH_SHORT).show();
+                    // Send notification to creator
+                    notificationService.sendPaymentPendingNotification(group, currentUserPay);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "שגיאה בעדכון סטטוס הקבוצה", Toast.LENGTH_SHORT).show();
-                    Log.e("GroupDetailsActivity", "Error updating group status", e);
+                    Log.e("GroupDetailsActivity", "Error updating payment status", e);
+                    Toast.makeText(this, "Failed to update payment status", Toast.LENGTH_SHORT).show();
                 });
         }
     }
 
-    private void updateParticipantsList() {
-        LinearLayout participantsContainer = findViewById(R.id.participants_container);
-        participantsContainer.removeAllViews();
-        
-        boolean isCreator = group.getCreator().getId().equals(currentUserId);
-        
-        for (UserPay userPay : group.getUserPayListAsList()) {
-            View participantView = getLayoutInflater().inflate(R.layout.item_participant_payment, participantsContainer, false);
-            
-            TextView nameText = participantView.findViewById(R.id.participant_name);
-            TextView statusTextView = participantView.findViewById(R.id.payment_status);
-            Button approveButton = participantView.findViewById(R.id.btn_approve);
-            
-            nameText.setText(userPay.getUser().getName());
-            
-            int statusColor;
-            String statusText;
-            
-            switch (userPay.getPaymentStatus()) {
-                case PAID:
-                    statusColor = getResources().getColor(R.color.status_paid);
-                    statusText = "שולם";
-                    approveButton.setVisibility(View.GONE);
-                    break;
-                case PENDING_APPROVAL:
-                    statusColor = getResources().getColor(R.color.status_pending);
-                    statusText = "ממתין לאישור";
-                    if (isCreator) {
-                        approveButton.setVisibility(View.VISIBLE);
-                        setupApprovalButton(approveButton, userPay);
-                    } else {
-                        approveButton.setVisibility(View.GONE);
-                    }
-                    break;
-                default:
-                    statusColor = getResources().getColor(R.color.status_not_paid);
-                    statusText = "לא שולם";
-                    approveButton.setVisibility(View.GONE);
-            }
-            
-            statusTextView.setBackgroundTintList(ColorStateList.valueOf(statusColor));
-            statusTextView.setText(statusText);
-            
-            participantsContainer.addView(participantView);
+    /**
+     * Checks if all payments are complete and updates group status
+     * Sends notifications when group is fully paid
+     */
+    private void checkAndUpdateGroupStatus() {
+        boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
+        if (allPaid) {
+            group.setStatus("Paid");
+            groupRef.child("status").setValue("Paid")
+                .addOnSuccessListener(aVoid -> {
+                    // Send notification to all members
+                    notificationService.sendGroupPaidNotification(group);
+                    
+                    // Update UI
+                    groupStatusText.setText("Paid");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("GroupDetailsActivity", "Failed to update group status", e);
+                    Toast.makeText(this, "Failed to update group status", Toast.LENGTH_SHORT).show();
+                });
         }
     }
 
-    private void setupApprovalButton(Button approveButton, UserPay userPay) {
-        approveButton.setOnClickListener(v -> {
-            userPay.setPaymentStatus(UserPay.PaymentStatus.PAID);
-            userPay.setPaid(true);
-            userPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
-            
-            updatePaymentStatus(userPay);
-        });
-    }
-
-    private void updatePaymentStatus(UserPay userPay) {
-        // Find the correct user in the list
-        List<UserPay> userPayList = group.getUserPayListAsList();
-        for (int i = 0; i < userPayList.size(); i++) {
-            UserPay currentUserPay = userPayList.get(i);
-            if (currentUserPay.getUser().getId().equals(userPay.getUser().getId())) {
-                // Update the payment status at the correct index
-                userPayList.set(i, userPay);
-                groupRef.child("userPayList").setValue(userPayList)
-                    .addOnSuccessListener(aVoid -> {
-                        notificationService.sendPaymentCompleteNotification(group, userPay);
-                        Toast.makeText(this, "Payment approved successfully", Toast.LENGTH_SHORT).show();
-                        
-                        // Check if all payments are complete
-                        boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
-                        if (allPaid) {
-                            // Only update group status to "Paid" if all members have paid
-                            groupRef.child("status").setValue("Paid")
-                                .addOnSuccessListener(statusVoid -> {
-                                    group.setStatus("Paid");
-                                    groupStatusText.setText("Paid");
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(this, "Error updating group status", Toast.LENGTH_SHORT).show();
-                                    Log.e("GroupDetailsActivity", "Error updating group status", e);
-                                });
-                        }
-                        
-                        // Refresh the UI
-                        updateParticipantsList();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error updating payment status", Toast.LENGTH_SHORT).show();
-                        Log.e("GroupDetailsActivity", "Error updating payment status", e);
-                    });
-                break;
-            }
-        }
-    }
-
+    /**
+     * Formats currency values with proper locale
+     * @param totalAmount The amount to format
+     * @return Formatted currency string
+     */
     private String getCurrencyString(double totalAmount) {
         return String.format(Locale.US, "$%.2f", totalAmount);
     }
 
+    /**
+     * Deletes the current group
+     * Only available to group creator
+     * Sends notifications to all members
+     */
     private void deleteGroup() {
-        if (group != null && group.getGroupId() != null) {
-            // First, notify all participants about the deletion
-            for (UserPay userPay : group.getUserPayListAsList()) {
-                if (!userPay.getUser().getId().equals(currentUserId)) { // Don't notify the creator
-                    notificationService.sendGroupDeletedNotification(group, userPay.getUser());
-                }
-            }
-
-            // Then delete the group
-            FirebaseDatabase.getInstance().getReference("groups")
-                    .child(group.getGroupId())
-                    .removeValue()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(this, "הקבוצה נמחקה בהצלחה", Toast.LENGTH_SHORT).show();
-                            finish();  // Close activity after deletion
-                        } else {
-                            Toast.makeText(this, "שגיאה במחיקת הקבוצה", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
-            Toast.makeText(this, "קבוצה לא תקינה, לא ניתן למחוק", Toast.LENGTH_SHORT).show();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            // Create a User object with the current user's information
+            User user = new User();
+            user.setId(currentUser.getUid());
+            user.setEmail(currentUser.getEmail());
+            user.setFname(currentUser.getDisplayName());
+            
+            // Send notification before deleting
+            notificationService.sendGroupDeletedNotification(group, user);
+            
+            // Delete the group from Firebase
+            groupRef.removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Group deleted successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("GroupDetailsActivity", "Error deleting group", e);
+                    Toast.makeText(this, "Failed to delete group", Toast.LENGTH_SHORT).show();
+                });
         }
     }
 
-    private void updateGroupStatus(String status) {
-        groupRef.child("status").setValue(status).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(GroupDetailsActivity.this, "Status updated to " + status, Toast.LENGTH_SHORT).show();
-                groupStatusText.setText(status);
-            } else {
-                Toast.makeText(GroupDetailsActivity.this, "Failed to update status", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
+    /**
+     * Handles back button press
+     * Navigates back to the previous activity
+     * @param view The view that triggered the back action
+     */
     public void goBack(View view) {
-        onBackPressed();  // This will navigate back to the previous activity
+        onBackPressed();
     }
 
+    /**
+     * Called when the activity is destroyed
+     * Cleans up resources and listeners
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (groupRef != null && valueEventListener != null) {
+            groupRef.removeEventListener(valueEventListener);
+        }
+    }
+
+    /**
+     * Updates the list of participants and their payment status
+     * Displays payment information and approval buttons
+     */
+    private void updateParticipantsList() {
+        LinearLayout participantsContainer = findViewById(R.id.participants_container);
+        participantsContainer.removeAllViews();
+
+        if (group.getUserPayListAsList() != null) {
+            for (UserPay userPay : group.getUserPayListAsList()) {
+                // Create participant view
+                View participantView = getLayoutInflater().inflate(R.layout.item_participant, participantsContainer, false);
+                
+                // Set participant information
+                TextView nameText = participantView.findViewById(R.id.participant_name);
+                TextView amountText = participantView.findViewById(R.id.participant_amount);
+                TextView statusText = participantView.findViewById(R.id.participant_status);
+                Button approveButton = participantView.findViewById(R.id.btn_approve_payment);
+                
+                nameText.setText(userPay.getUser().getName());
+                amountText.setText(getCurrencyString(userPay.getAmount()));
+                
+                // Set status text and state based on payment status
+                switch (userPay.getPaymentStatus()) {
+                    case PAID:
+                        statusText.setText("שולם");
+                        statusText.setActivated(true);
+                        statusText.setSelected(false);
+                        break;
+                    case PENDING_APPROVAL:
+                        statusText.setText("ממתין לאישור");
+                        statusText.setActivated(false);
+                        statusText.setSelected(true);
+                        break;
+                    case NOT_PAID:
+                        statusText.setText("לא שולם");
+                        statusText.setActivated(false);
+                        statusText.setSelected(false);
+                        break;
+                }
+                
+                // Set up approval button for creator
+                if (group.getCreator().getId().equals(currentUserId)) {
+                    setupApprovalButton(approveButton, userPay);
+                } else {
+                    approveButton.setVisibility(View.GONE);
+                }
+                
+                participantsContainer.addView(participantView);
+            }
+        }
+    }
+
+    /**
+     * Sets up the approval button for a participant's payment
+     * @param approveButton The button to set up
+     * @param userPay The payment to approve
+     */
+    private void setupApprovalButton(Button approveButton, UserPay userPay) {
+        if (userPay.getPaymentStatus() == UserPay.PaymentStatus.PENDING_APPROVAL) {
+            approveButton.setVisibility(View.VISIBLE);
+            approveButton.setOnClickListener(v -> {
+                // Update payment status
+                userPay.setPaymentStatus(UserPay.PaymentStatus.PAID);
+                userPay.setPaid(true);
+                userPay.setPaymentDate(new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+                
+                // Update in Firebase
+                List<UserPay> userPayList = group.getUserPayListAsList();
+                for (int i = 0; i < userPayList.size(); i++) {
+                    if (userPayList.get(i).getUser().getId().equals(userPay.getUser().getId())) {
+                        userPayList.set(i, userPay);
+                        break;
+                    }
+                }
+                
+                groupRef.child("userPayList").setValue(userPayList)
+                    .addOnSuccessListener(aVoid -> {
+                        // Send notification to member
+                        notificationService.sendPaymentCompleteNotification(group, userPay);
+                        
+                        // Check if all payments are complete
+                        checkAndUpdateGroupStatus();
+                        
+                        // Refresh UI
+                        updateParticipantsList();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("GroupDetailsActivity", "Failed to update payment status", e);
+                        Toast.makeText(this, "Failed to update payment status", Toast.LENGTH_SHORT).show();
+                    });
+            });
+        } else {
+            approveButton.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Updates the payment status for a participant
+     * Handles approval and rejection
+     * @param userPay The payment to update
+     */
+    private void updatePaymentStatus(UserPay userPay) {
+        TextView statusView = findViewById(R.id.participant_status);
+        if (statusView != null) {
+            switch (userPay.getPaymentStatus()) {
+                case PAID:
+                    statusView.setText("שולם");
+                    statusView.setActivated(true);
+                    statusView.setSelected(false);
+                    break;
+                case PENDING_APPROVAL:
+                    statusView.setText("ממתין לאישור");
+                    statusView.setActivated(false);
+                    statusView.setSelected(true);
+                    break;
+                case NOT_PAID:
+                    statusView.setText("לא שולם");
+                    statusView.setActivated(false);
+                    statusView.setSelected(false);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Called when the activity resumes
+     * Refreshes group data and UI
+     */
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh group data and check status when activity resumes
-        if (group != null && group.getGroupId() != null) {
-            groupRef.get().addOnSuccessListener(snapshot -> {
-                Group updatedGroup = snapshot.getValue(Group.class);
-                if (updatedGroup != null) {
-                    group = updatedGroup;
-                    // Update UI with new data
-                    groupStatusText.setText(group.getStatus());
-                    deadlineCountdownView.setGroup(group);
-                    // Refresh the amount display
-                    displayUserOwedAmount();
-                    // Check if all users have paid
-                    boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
-                    if (allPaid && !"Paid".equals(group.getStatus())) {
-                        // Only update status if it's not already "Paid"
-                        groupRef.child("status").setValue("Paid")
-                            .addOnSuccessListener(aVoid -> {
-                                group.setStatus("Paid");
-                                groupStatusText.setText("Paid");
-                            });
+        if (group != null) {
+            // Refresh group data
+            groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Group updatedGroup = dataSnapshot.getValue(Group.class);
+                    if (updatedGroup != null) {
+                        group = updatedGroup;
+                        displayGroupDetails();
+                        setupCurrentUserPayment();
+                        updateParticipantsList();
+                        deadlineCountdownView.setGroup(group);
                     }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("GroupDetailsActivity", "Failed to refresh group data", error.toException());
                 }
             });
         }
     }
 
-    // Add a method to manually trigger payment reminders
+    /**
+     * Sends payment reminders to all unpaid participants
+     * Only available to group creator
+     */
     private void sendPaymentReminders() {
-        notificationService.sendPaymentReminder(group);
-        Toast.makeText(this, "תזכורות נשלחו בהצלחה", Toast.LENGTH_SHORT).show();
+        if (group.getCreator().getId().equals(currentUserId)) {
+            for (UserPay userPay : group.getUserPayListAsList()) {
+                if (!userPay.isPaid()) {
+                    notificationService.sendPaymentReminderNotification(group, userPay);
+                }
+            }
+            Toast.makeText(this, "Payment reminders sent", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Only the group creator can send reminders", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    // Add a menu item for sending reminders
+    /**
+     * Creates the options menu
+     * @param menu The menu to create
+     * @return true if menu was created successfully
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.group_details_menu, menu);
-        // Show reminder button only to the creator
-        boolean isCreator = group != null && group.getCreator().getId().equals(currentUserId);
-        menu.findItem(R.id.action_send_reminders).setVisible(isCreator);
         return true;
     }
 
+    /**
+     * Handles menu item selection
+     * @param item The selected menu item
+     * @return true if item was handled successfully
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_send_reminders) {
@@ -474,5 +569,69 @@ public class GroupDetailsActivity extends NavActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Sets up the payment marking functionality
+     * Configures the button to mark payments as paid
+     */
+    private void setupPaymentMarking() {
+        Button markPaidButton = findViewById(R.id.btnMarkCurrentUserPaid);
+        if (markPaidButton != null) {
+            markPaidButton.setOnClickListener(v -> {
+                List<UserPay> userPayList = group.getUserPayListAsList();
+                for (UserPay userPay : userPayList) {
+                    if (userPay.getUser().getId().equals(currentUserId)) {
+                        markPaymentAsPaid(userPay);
+                        break;
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Sets up the delete button functionality
+     * Only visible to group creator
+     */
+    private void setupDeleteButton() {
+        if (deleteButton != null) {
+            // Only show delete button to group creator
+            if (group.getCreator().getId().equals(currentUserId)) {
+                deleteButton.setVisibility(View.VISIBLE);
+                deleteButton.setOnClickListener(v -> {
+                    // Show confirmation dialog
+                    new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Delete Group")
+                        .setMessage("Are you sure you want to delete this group?")
+                        .setPositiveButton("Yes", (dialog, which) -> deleteGroup())
+                        .setNegativeButton("No", null)
+                        .show();
+                });
+            } else {
+                deleteButton.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void setupRealtimeUpdates() {
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Group updatedGroup = dataSnapshot.getValue(Group.class);
+                if (updatedGroup != null) {
+                    group = updatedGroup;
+                    displayGroupDetails();
+                    updateParticipantsList();
+                    deadlineCountdownView.setGroup(group);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("GroupDetailsActivity", "Error listening for updates", error.toException());
+            }
+        };
+        groupRef.addValueEventListener(valueEventListener);
     }
 }

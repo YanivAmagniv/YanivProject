@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- AndroidManifest.xml -->
+<!-- This file defines essential information about the app to the Android system -->
+<!-- It declares permissions, activities, and other app components -->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.yanivproject">
 
+    <!-- Required permissions for the app -->
+    <!-- Internet permission for network operations -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Notification permission for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -17,7 +24,8 @@
         android:theme="@style/Theme.YanivProject"
         tools:targetApi="31">
         
-        <!-- Splash Activity -->
+        <!-- Splash Activity - First screen users see -->
+        <!-- This is the launcher activity (entry point) of the app -->
         <activity
             android:name=".screens.SplashActivity"
             android:exported="true"
@@ -28,7 +36,8 @@
             </intent-filter>
         </activity>
 
-        <!-- Main Activity -->
+        <!-- Main Activity - Main interface after splash screen -->
+        <!-- Uses singleTop launch mode to prevent multiple instances -->
         <activity
             android:name=".screens.MainActivity"
             android:exported="true"
@@ -41,34 +50,52 @@
             </intent-filter>
         </activity>
 
-        <!-- Other activities -->
+        <!-- Navigation Activity - Handles app navigation -->
         <activity
             android:name=".screens.NavActivity"
             android:exported="false" />
+
+        <!-- Admin Activity - For administrative functions -->
         <activity
             android:name=".screens.AdminActivity"
             android:exported="false" />
+
+        <!-- User Details Activity - Shows user information -->
         <activity
             android:name=".screens.UserDetails"
             android:exported="false" />
+
+        <!-- Group Details Activity - Shows group information -->
         <activity
             android:name=".screens.GroupDetailsActivity"
             android:exported="false" />
+
+        <!-- Existent Group Activity - For existing group management -->
         <activity
             android:name=".screens.ExistentGroup"
             android:exported="false" />
+
+        <!-- Add New Event Activity - For creating new events -->
         <activity
             android:name=".screens.AddNewEvent"
             android:exported="false" />
+
+        <!-- Register Activity - User registration screen -->
         <activity
             android:name=".screens.Register"
             android:exported="false" />
+
+        <!-- Login Activity - User authentication screen -->
         <activity
             android:name=".screens.Login"
             android:exported="false" />
+
+        <!-- Home Page Activity - Main app interface after login -->
         <activity
             android:name=".screens.HomePage"
             android:exported="false" />
+
+        <!-- About Activity - App information screen -->
         <activity
             android:name=".screens.AboutActivity"
             android:exported="false" />

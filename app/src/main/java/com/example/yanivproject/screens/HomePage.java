@@ -1,3 +1,8 @@
+// HomePage.java
+// This is the main interface of the app after user login
+// It handles navigation, user data display, and notifications
+// Implements navigation drawer functionality and admin features
+
 package com.example.yanivproject.screens;
 
 import android.content.Intent;
@@ -32,7 +37,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.ChildEventListener;
 
 public class HomePage extends NavActivity implements NavigationView.OnNavigationItemSelectedListener, ChildEventListener {
-
+    // UI Components
     private Button btnAdminPage;
     private TextView welcomeText;
     private User currentUser;
@@ -44,41 +49,43 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Enable edge-to-edge display
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home_page);
         setupNavigationDrawer();
 
-        // Initialize NotificationService
+        // Initialize notification service for handling push notifications
         notificationService = new NotificationService(this);
 
-        // Set up notification listener
+        // Set up real-time notification listener
         setupNotificationListener();
 
-        // Set up the Toolbar
+        // Set up the Toolbar for the app
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Initialize views
+        // Initialize UI components
         btnAdminPage = findViewById(R.id.btnAdminPage);
-        btnAdminPage.setVisibility(View.GONE); // Default to hidden
+        btnAdminPage.setVisibility(View.GONE); // Hide admin button by default
         welcomeText = findViewById(R.id.welcomeText);
         drawerLayout = findViewById(R.id.drawer_layout);
 
-        // Get current user ID
+        // Get current user information from Firebase
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser != null) {
             currentUserId = firebaseUser.getUid();
-            loadUserData();
+            loadUserData(); // Load user's personal information
         }
 
-        // Check if the current user is an admin
+        // Check if user has admin privileges
         checkIfAdmin();
 
+        // Set up navigation drawer
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         Menu menu = navigationView.getMenu();
 
-        // Set up the navigation drawer toggle
+        // Configure the navigation drawer toggle
         toggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
@@ -101,11 +108,11 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        // Make sure these lines are here
+        // Enable the home button in the action bar
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        // Optional: Hide admin menu item for non-admins
+        // Hide admin menu item for non-admin users
         if (currentUser != null && !currentUser.getAdmin()) {
             MenuItem adminItem = menu.findItem(R.id.nav_admin_page);
             if (adminItem != null) {
@@ -114,25 +121,27 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         }
     }
 
+    // Load user data from Firebase database
     private void loadUserData() {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUserId);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
+                    // Get user's first and last name
                     String firstName = snapshot.child("fname").getValue(String.class);
                     String lastName = snapshot.child("lname").getValue(String.class);
                     
-                    // Handle null values
+                    // Handle null values gracefully
                     firstName = (firstName != null) ? firstName : "";
                     lastName = (lastName != null) ? lastName : "";
                     
                     String fullName = (firstName + " " + lastName).trim();
                     if (fullName.isEmpty()) {
-                        fullName = "משתמש";
+                        fullName = "משתמש"; // Default name in Hebrew
                     }
                     
-                    // Update welcome message
+                    // Update welcome message with user's name
                     welcomeText.setText("ברוך הבא, " + fullName + "!");
                 } else {
                     // Handle case where user data doesn't exist
@@ -150,7 +159,7 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         });
     }
 
-    // Check if the current user is an admin
+    // Check if the current user has admin privileges
     private void checkIfAdmin() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
@@ -160,7 +169,7 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
             if (snapshot.exists()) {
                 Boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
                 if (isAdmin != null && isAdmin) {
-                    btnAdminPage.setVisibility(View.VISIBLE);
+                    btnAdminPage.setVisibility(View.VISIBLE); // Show admin button for admins
                 } else {
                     btnAdminPage.setVisibility(View.GONE);
                 }
@@ -169,6 +178,7 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         Log.d("AdminCheck", "Current UID: " + currentUser.getUid());
     }
 
+    // Set up real-time notification listener
     private void setupNotificationListener() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -179,17 +189,24 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         }
     }
 
+    // Handle new notifications
     @Override
     public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
         if (snapshot.exists()) {
-            String title = snapshot.child("title").getValue(String.class);
-            String message = snapshot.child("message").getValue(String.class);
-            if (title != null && message != null) {
-                notificationService.showLocalNotification(title, message);
+            Boolean seen = snapshot.child("seen").getValue(Boolean.class);
+            if (seen == null || !seen) {  // Only show if not seen
+                String title = snapshot.child("title").getValue(String.class);
+                String message = snapshot.child("message").getValue(String.class);
+                if (title != null && message != null) {
+                    notificationService.showLocalNotification(title, message);
+                    // Mark notification as seen
+                    notificationService.markNotificationAsSeen(currentUserId, snapshot.getKey());
+                }
             }
         }
     }
 
+    // Required interface methods for ChildEventListener
     @Override
     public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {}
 
@@ -204,10 +221,11 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         Log.e("HomePage", "Database error: " + error.getMessage());
     }
 
+    // Clean up resources when activity is destroyed
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Remove the listener when the activity is destroyed
+        // Remove the notification listener
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications")
@@ -216,12 +234,13 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         }
     }
 
+    // Handle navigation drawer item selection
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Don't navigate, we're already in HomePage
+            // Already in HomePage
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (id == R.id.nav_new_group) {
             startActivity(new Intent(this, AddNewEvent.class));
@@ -234,6 +253,7 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         } else if (id == R.id.nav_admin_page) {
             startActivity(new Intent(this, AdminActivity.class));
         } else if (id == R.id.nav_logout) {
+            // Sign out and return to login screen
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(this, Login.class));
             finish();
@@ -243,6 +263,7 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         return true;
     }
 
+    // Handle toolbar item selection
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (toggle.onOptionsItemSelected(item)) {

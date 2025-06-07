@@ -1,3 +1,9 @@
+// AddNewEvent.java
+// This activity handles the creation of new group events
+// It manages user selection, payment splitting, and deadline setting
+// Implements various payment splitting methods and validation
+// Provides real-time feedback on payment distribution
+
 package com.example.yanivproject.screens;
 
 import android.content.Intent;
@@ -35,52 +41,87 @@ import java.util.List;
 import java.util.Locale;
 import java.text.SimpleDateFormat;
 
+/**
+ * Activity for creating new group events
+ * Features:
+ * - User selection and management
+ * - Multiple payment splitting methods
+ * - Deadline setting and validation
+ * - Real-time payment distribution feedback
+ * - Input validation and error handling
+ * - Group creation with Firebase integration
+ */
 public class AddNewEvent extends NavActivity implements View.OnClickListener {
-    private AutoCompleteTextView spEventType, spSplittingMethod;
-    private CalendarView cvPaymentDeadline;
-    private TextView deadlineTextView;
-    private String stDeadlineDate;
-    private TextInputEditText etTotalAmount;
+    // UI Components for event details
+    private AutoCompleteTextView spEventType;      // Dropdown for event type selection
+    private AutoCompleteTextView spSplittingMethod; // Dropdown for payment splitting method
+    private CalendarView cvPaymentDeadline;        // Calendar for deadline selection
+    private TextView deadlineTextView;             // Displays selected deadline
+    private String stDeadlineDate;                 // Stores selected deadline date
+    private TextInputEditText etTotalAmount;       // Input for total group amount
 
-    private TextInputEditText etGroupName, etDescription;
-    private String stGroupName, stDescription, stSPeventType;
+    // UI Components for group information
+    private TextInputEditText etGroupName;         // Input for group name
+    private TextInputEditText etDescription;       // Input for group description
+    private String stGroupName;                    // Stores group name
+    private String stDescription;                  // Stores group description
+    private String stSPeventType;                  // Stores selected event type
 
-    private MaterialButton btnCreateGroup, btnBack;
-    private DatabaseService databaseService;
-    private AuthenticationService authenticationService;
-    private String uid;
-
-    private User user;
-    private ArrayList<User> usersSelected = new ArrayList<>();
+    // Action buttons
+    private MaterialButton btnCreateGroup;         // Button to create new group
+    private MaterialButton btnBack;                // Button to go back
     
-    private RecyclerView rvUserAmounts, rvParticipants;
-    private UserAmountAdapter userAmountAdapter;
-    private UserSelectionAdapter userSelectionAdapter;
-    private TextView tvSplitExplanation, tvTotalSplit;
-    private double totalAmount = 0.0;
+    // Service instances
+    private DatabaseService databaseService;       // Handles database operations
+    private AuthenticationService authenticationService; // Handles user authentication
+    private String uid;                           // Current user ID
 
-    private CheckBox cbHasDeadline;
-    private static final int MIN_DAYS_UNTIL_DEADLINE = 1;
-    private static final int MAX_DAYS_UNTIL_DEADLINE = 90; // 3 months
+    // User management
+    private User user;                            // Current user object
+    private ArrayList<User> usersSelected = new ArrayList<>(); // Selected participants
+    
+    // RecyclerViews and adapters for user selection and amount input
+    private RecyclerView rvUserAmounts;           // RecyclerView for amount inputs
+    private RecyclerView rvParticipants;          // RecyclerView for participant selection
+    private UserAmountAdapter userAmountAdapter;  // Adapter for amount inputs
+    private UserSelectionAdapter userSelectionAdapter; // Adapter for participant selection
+    private TextView tvSplitExplanation;          // Explains current splitting method
+    private TextView tvTotalSplit;                // Shows total split amount
+    private double totalAmount = 0.0;             // Total group amount
 
-    private View deadlineContainer;
+    // Deadline management
+    private CheckBox cbHasDeadline;               // Toggle for deadline setting
+    private static final int MIN_DAYS_UNTIL_DEADLINE = 1;    // Minimum days until deadline
+    private static final int MAX_DAYS_UNTIL_DEADLINE = 90;   // Maximum days until deadline (3 months)
+    private View deadlineContainer;               // Container for deadline UI elements
 
+    /**
+     * Called when the activity is first created
+     * Initializes UI components and sets up event listeners
+     * @param savedInstanceState Bundle containing the activity's previously saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newgroup);
         setupNavigationDrawer();
 
+        // Initialize services
         databaseService = DatabaseService.getInstance();
         authenticationService = AuthenticationService.getInstance();
         uid = authenticationService.getCurrentUserId();
 
+        // Set up UI components and listeners
         initViews();
         setupAdapters();
         setupListeners();
         loadUsers();
     }
 
+    /**
+     * Initializes all UI components
+     * Sets up click listeners and finds views
+     */
     private void initViews() {
         btnCreateGroup = findViewById(R.id.btnCreateGroup);
         btnBack = findViewById(R.id.btnBack);
@@ -98,15 +139,21 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         cbHasDeadline = findViewById(R.id.cbHasDeadline);
         deadlineContainer = findViewById(R.id.deadlineContainer);
 
+        // Set up click listeners
         btnCreateGroup.setOnClickListener(this);
         btnBack.setOnClickListener(v -> onBackPressed());
     }
 
+    /**
+     * Sets up adapters for user selection and amount input
+     * Configures RecyclerViews and their adapters
+     * Sets up spinners for event type and splitting method
+     */
     private void setupAdapters() {
-        // Setup spinners
+        // Setup spinners for event type and splitting method
         setupSpinners();
 
-        // Setup RecyclerViews
+        // Setup RecyclerView for participant selection
         rvParticipants.setLayoutManager(new LinearLayoutManager(this));
         userSelectionAdapter = new UserSelectionAdapter();
         userSelectionAdapter.setOnUserSelectionChangedListener(selectedUsers -> {
@@ -116,6 +163,7 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         });
         rvParticipants.setAdapter(userSelectionAdapter);
 
+        // Setup RecyclerView for amount input
         rvUserAmounts.setLayoutManager(new LinearLayoutManager(this));
         userAmountAdapter = new UserAmountAdapter();
         userAmountAdapter.setOnAmountChangedListener((currentTotal, remaining) -> {
@@ -131,6 +179,10 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         rvUserAmounts.setAdapter(userAmountAdapter);
     }
 
+    /**
+     * Sets up spinners with predefined options
+     * Configures event type and splitting method dropdowns
+     */
     private void setupSpinners() {
         // Event type spinner
         ArrayAdapter<CharSequence> eventTypeAdapter = ArrayAdapter.createFromResource(
@@ -144,7 +196,16 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         spSplittingMethod.setAdapter(splitAdapter);
     }
 
+    /**
+     * Sets up all event listeners
+     * Configures listeners for:
+     * - Deadline checkbox
+     * - Calendar view
+     * - Splitting method selection
+     * - Total amount input
+     */
     private void setupListeners() {
+        // Deadline checkbox listener
         cbHasDeadline.setOnCheckedChangeListener((buttonView, isChecked) -> {
             deadlineContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
             if (!isChecked) {
@@ -153,47 +214,23 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
             }
         });
 
+        // Calendar view listener for deadline selection
         cvPaymentDeadline.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             stDeadlineDate = year + "-" + (month + 1) + "-" + dayOfMonth;
             deadlineTextView.setText(stDeadlineDate);
             
-            // Enhanced deadline validation
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                Date deadline = sdf.parse(stDeadlineDate);
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.HOUR_OF_DAY, 0);
-                calendar.set(Calendar.MINUTE, 0);
-                calendar.set(Calendar.SECOND, 0);
-                calendar.set(Calendar.MILLISECOND, 0);
-                Date today = calendar.getTime();
-                
-                if (deadline != null) {
-                    // Calculate days difference
-                    long diffInMillis = deadline.getTime() - today.getTime();
-                    long daysUntilDeadline = diffInMillis / (24 * 60 * 60 * 1000);
-                    
-                    if (daysUntilDeadline < MIN_DAYS_UNTIL_DEADLINE) {
-                        Toast.makeText(this, "תאריך היעד חייב להיות לפחות יום אחד בעתיד", Toast.LENGTH_SHORT).show();
-                        stDeadlineDate = null;
-                        deadlineTextView.setText("תאריך היעד שנבחר");
-                    } else if (daysUntilDeadline > MAX_DAYS_UNTIL_DEADLINE) {
-                        Toast.makeText(this, "תאריך היעד לא יכול להיות יותר מ-3 חודשים בעתיד", Toast.LENGTH_SHORT).show();
-                        stDeadlineDate = null;
-                        deadlineTextView.setText("תאריך היעד שנבחר");
-                    }
-                }
-            } catch (Exception e) {
-                Log.e("AddNewEvent", "Error validating deadline date", e);
-            }
+            // Validate selected deadline date
+            validateDeadlineDate();
         });
 
+        // Splitting method selection listener
         spSplittingMethod.setOnItemClickListener((parent, view, position, id) -> {
             String method = spSplittingMethod.getText().toString();
             updateSplitExplanation(method);
             updateUserAmountsList();
         });
 
+        // Total amount input listener
         etTotalAmount.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -213,60 +250,112 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
         });
     }
 
-    private void updateSplitExplanation(String method) {
-        tvSplitExplanation.setVisibility(View.VISIBLE);
-        switch (method) {
-            case "חלוקה שווה":
-                tvSplitExplanation.setText("הסכום יתחלק שווה בשווה בין כל המשתתפים");
-                break;
-            case "חלוקה לפי אחוזים":
-                tvSplitExplanation.setText("הזן אחוז עבור כל משתתף (סה״כ חייב להיות 100%)");
-                break;
-            case "חלוקה מותאמת אישית":
-                tvSplitExplanation.setText("הזן סכום ספציפי עבור כל משתתף");
-                break;
+    /**
+     * Validates the selected deadline date
+     * Ensures deadline is within allowed range (1-90 days)
+     * Shows error message if validation fails
+     */
+    private void validateDeadlineDate() {
+        if (stDeadlineDate != null) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date deadlineDate = sdf.parse(stDeadlineDate);
+                Date currentDate = new Date();
+                
+                // Calculate days difference
+                long diffInMillis = deadlineDate.getTime() - currentDate.getTime();
+                long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+                
+                if (diffInDays < MIN_DAYS_UNTIL_DEADLINE) {
+                    deadlineTextView.setError("תאריך היעד חייב להיות לפחות יום אחד מהיום");
+                    stDeadlineDate = null;
+                } else if (diffInDays > MAX_DAYS_UNTIL_DEADLINE) {
+                    deadlineTextView.setError("תאריך היעד לא יכול להיות יותר מ-90 ימים מהיום");
+                    stDeadlineDate = null;
+                } else {
+                    deadlineTextView.setError(null);
+                }
+            } catch (Exception e) {
+                Log.e("AddNewEvent", "Error validating deadline date", e);
+                deadlineTextView.setError("תאריך לא תקין");
+                stDeadlineDate = null;
+            }
         }
     }
 
-    private void updateUserAmountsList() {
-        if (usersSelected.isEmpty() || totalAmount <= 0) {
-            rvUserAmounts.setVisibility(View.GONE);
-            tvTotalSplit.setVisibility(View.GONE);
-            return;
+    /**
+     * Updates the explanation text for the current splitting method
+     * @param method The selected splitting method
+     */
+    private void updateSplitExplanation(String method) {
+        String explanation;
+        switch (method) {
+            case "חלוקה שווה":
+                explanation = "הסכום יחולק שווה בשווה בין כל המשתתפים";
+                break;
+            case "חלוקה לפי אחוזים":
+                explanation = "הזן אחוזים לכל משתתף (סה״כ חייב להיות 100%)";
+                break;
+            case "חלוקה מותאמת אישית":
+                explanation = "הזן סכום מותאם לכל משתתף";
+                break;
+            default:
+                explanation = "";
         }
+        tvSplitExplanation.setText(explanation);
+    }
 
-        String splitMethod = spSplittingMethod.getText().toString();
-        userAmountAdapter.updateUsers(usersSelected, totalAmount, splitMethod);
-        rvUserAmounts.setVisibility(View.VISIBLE);
-        
+    /**
+     * Updates the list of user amounts based on selected splitting method
+     * Recalculates amounts and updates UI
+     */
+    private void updateUserAmountsList() {
+        String method = spSplittingMethod.getText().toString();
+        userAmountAdapter.setUsers(usersSelected);
+        userAmountAdapter.setTotalAmount(totalAmount);
+        userAmountAdapter.setSplitMethod(method);
+        userAmountAdapter.notifyDataSetChanged();
         updateTotalDisplay();
     }
 
+    /**
+     * Updates the total amount display
+     * Shows remaining amount if not fully distributed
+     */
     private void updateTotalDisplay() {
         double currentTotal = userAmountAdapter.getCurrentTotal();
         double remaining = totalAmount - currentTotal;
+        
         tvTotalSplit.setVisibility(View.VISIBLE);
-        tvTotalSplit.setText(String.format("סה״כ: ₪%.2f (נותר: ₪%.2f)", currentTotal, remaining));
-        tvTotalSplit.setTextColor(Math.abs(remaining) < 0.01 ? 
-            getResources().getColor(android.R.color.holo_green_dark) : 
-            getResources().getColor(android.R.color.holo_red_dark));
+        if (Math.abs(remaining) < 0.01) {
+            tvTotalSplit.setText(String.format("סה״כ: ₪%.2f", currentTotal));
+            tvTotalSplit.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            tvTotalSplit.setText(String.format("סה״כ: ₪%.2f (נותר: ₪%.2f)", currentTotal, remaining));
+            tvTotalSplit.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
     }
 
+    /**
+     * Loads users from the database
+     * Populates user selection list
+     */
     private void loadUsers() {
-        databaseService.getUsers(new DatabaseService.DatabaseCallback<List<User>>() {
+        databaseService.getAllUsers(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
             public void onCompleted(List<User> users) {
-                userSelectionAdapter.updateUsers(users);
+                userSelectionAdapter.setUsers(users);
+                userSelectionAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e("TAG", "Failed to load users: ", e);
-                Toast.makeText(AddNewEvent.this, "שגיאה בטעינת משתמשים", Toast.LENGTH_SHORT).show();
+                Log.e("AddNewEvent", "Failed to load users", e);
+                Toast.makeText(AddNewEvent.this, "Failed to load users", Toast.LENGTH_SHORT).show();
             }
         });
 
-        databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
+        databaseService.getUserById(uid, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User u) {
                 user = u;
@@ -274,93 +363,116 @@ public class AddNewEvent extends NavActivity implements View.OnClickListener {
 
             @Override
             public void onFailed(Exception e) {
-                Log.e("TAG", "Failed to load current user: ", e);
+                Log.e("AddNewEvent", "Failed to load current user", e);
+                Toast.makeText(AddNewEvent.this, "Failed to load user data", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    /**
+     * Handles click events for buttons
+     * @param v The view that was clicked
+     */
     @Override
     public void onClick(View v) {
-        if (v == btnCreateGroup) {
+        if (v.getId() == R.id.btnCreateGroup) {
             if (validateInput()) {
                 createNewGroup();
             }
         }
     }
 
+    /**
+     * Validates all input fields
+     * Checks for required fields and valid values
+     * @return true if all validation passes
+     */
     private boolean validateInput() {
-        stGroupName = etGroupName.getText().toString().trim();
-        stDescription = etDescription.getText().toString().trim();
-        stSPeventType = spEventType.getText().toString();
-        String totalAmountStr = etTotalAmount.getText().toString().trim();
+        boolean isValid = true;
 
+        // Validate group name
+        stGroupName = etGroupName.getText().toString().trim();
         if (stGroupName.isEmpty()) {
-            etGroupName.setError("נא להזין שם קבוצה");
-            etGroupName.requestFocus();
-            return false;
+            etGroupName.setError("נא להזין שם לקבוצה");
+            isValid = false;
         }
-        if (stDescription.isEmpty()) {
-            etDescription.setError("נא להזין תיאור");
-            etDescription.requestFocus();
-            return false;
+
+        // Validate event type
+        stSPeventType = spEventType.getText().toString();
+        if (stSPeventType.isEmpty()) {
+            spEventType.setError("נא לבחור סוג אירוע");
+            isValid = false;
         }
-        if (cbHasDeadline.isChecked() && (stDeadlineDate == null || stDeadlineDate.isEmpty())) {
-            Toast.makeText(this, "נא לבחור תאריך יעד לתשלום", Toast.LENGTH_SHORT).show();
-            cvPaymentDeadline.requestFocus();
-            return false;
+
+        // Validate total amount
+        if (totalAmount <= 0) {
+            etTotalAmount.setError("נא להזין סכום חיובי");
+            isValid = false;
         }
+
+        // Validate participants
         if (usersSelected.isEmpty()) {
             Toast.makeText(this, "נא לבחור לפחות משתתף אחד", Toast.LENGTH_SHORT).show();
-            return false;
+            isValid = false;
         }
-        if (totalAmountStr.isEmpty()) {
-            etTotalAmount.setError("נא להזין סכום");
-            etTotalAmount.requestFocus();
-            return false;
+
+        // Validate payment distribution
+        String method = spSplittingMethod.getText().toString();
+        double currentTotal = userAmountAdapter.getCurrentTotal();
+        if (Math.abs(currentTotal - totalAmount) > 0.01) {
+            Toast.makeText(this, "סכום התשלומים חייב להיות שווה לסכום הכולל", Toast.LENGTH_SHORT).show();
+            isValid = false;
         }
-        if (spSplittingMethod.getText().toString().isEmpty()) {
-            spSplittingMethod.setError("נא לבחור שיטת חלוקה");
-            spSplittingMethod.requestFocus();
-            return false;
+
+        // Validate deadline if enabled
+        if (cbHasDeadline.isChecked() && stDeadlineDate == null) {
+            deadlineTextView.setError("נא לבחור תאריך יעד");
+            isValid = false;
         }
-        if (!userAmountAdapter.validateTotalAmount()) {
-            double currentTotal = userAmountAdapter.getCurrentTotal();
-            double diff = Math.abs(totalAmount - currentTotal);
-            Toast.makeText(this, 
-                String.format("סכום החלוקה אינו תואם לסכום הכולל (הפרש: ₪%.2f)", diff), 
-                Toast.LENGTH_LONG).show();
-            return false;
-        }
-        return true;
+
+        return isValid;
     }
 
+    /**
+     * Creates a new group with the provided information
+     * Saves group data to Firebase
+     */
     private void createNewGroup() {
-        double totalAmount = Double.parseDouble(etTotalAmount.getText().toString().trim());
-        ArrayList<UserPay> userPayList = userAmountAdapter.getUserPayList();
-        
-        String groupId = databaseService.generateGroupId();
-        Group group = new Group(groupId, stGroupName, "not paid", stDescription, 
-                stSPeventType, user, userPayList, spSplittingMethod.getText().toString(), totalAmount);
-        
-        // Set the payment deadline only if the checkbox is checked and a date was provided
-        if (cbHasDeadline.isChecked() && stDeadlineDate != null && !stDeadlineDate.isEmpty()) {
-            group.setPaymentDeadline(stDeadlineDate);
-        }
+        // Create group object
+        Group group = new Group();
+        group.setGroupName(stGroupName);
+        group.setGroupDescription(etDescription.getText().toString().trim());
+        group.setType(stSPeventType);
+        group.setTotalAmount(totalAmount);
+        group.setSplitMethod(spSplittingMethod.getText().toString());
+        group.setCreator(user);
+        group.setStatus("Active");
+        group.setDeadlineDate(stDeadlineDate);
 
-        databaseService.createNewGroup(group, new DatabaseService.DatabaseCallback<Void>() {
+        // Create user payment list
+        List<UserPay> userPayList = new ArrayList<>();
+        for (User selectedUser : usersSelected) {
+            UserPay userPay = new UserPay();
+            userPay.setUser(selectedUser);
+            userPay.setAmount(userAmountAdapter.getAmountForUser(selectedUser));
+            userPay.setPaid(false);
+            userPay.setPaymentStatus(UserPay.PaymentStatus.NOT_PAID);
+            userPayList.add(userPay);
+        }
+        group.setUserPayList(userPayList);
+
+        // Save group to database
+        databaseService.createGroup(group, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
-                Toast.makeText(AddNewEvent.this, "הקבוצה נוצרה בהצלחה!", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(), ExistentGroup.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                Toast.makeText(AddNewEvent.this, "Group created successfully", Toast.LENGTH_SHORT).show();
                 finish();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(AddNewEvent.this, "שגיאה ביצירת הקבוצה. נסה שוב.", Toast.LENGTH_SHORT).show();
-                Log.e("TAG", "Failed to create group: ", e);
+                Log.e("AddNewEvent", "Failed to create group", e);
+                Toast.makeText(AddNewEvent.this, "Failed to create group", Toast.LENGTH_SHORT).show();
             }
         });
     }

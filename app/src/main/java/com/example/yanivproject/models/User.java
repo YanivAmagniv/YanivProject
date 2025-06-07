@@ -1,18 +1,40 @@
+// User.java
+// This class represents a user in the application
+// Implements Serializable for easy data transfer between activities
+// Contains user information and authentication details
+
 package com.example.yanivproject.models;
 
 import java.io.Serializable;
 
+/**
+ * Model class representing a user in the application
+ * Contains user information, authentication details, and administrative status
+ * Implements Serializable for easy data transfer between activities
+ */
 public class User implements Serializable {
-    private static final long serialVersionUID = 1L;  // Optional but recommended
+    // Serialization version ID for compatibility
+    private static final long serialVersionUID = 1L;
 
-    protected String id;
-    protected String fname;
-    protected String lname;
-    protected String phone;
-    protected String email;
-    protected String password;
-    protected Boolean isAdmin;
+    // User identification and personal information
+    protected String id;        // Unique identifier for the user
+    protected String fname;     // User's first name
+    protected String lname;     // User's last name
+    protected String phone;     // User's phone number
+    protected String email;     // User's email address
+    protected String password;  // User's password (should be hashed in production)
+    protected Boolean isAdmin;  // Flag indicating if user has administrative privileges
 
+    /**
+     * Constructor for creating a new user with all fields
+     * @param id Unique identifier for the user
+     * @param fname User's first name
+     * @param lname User's last name
+     * @param phone User's phone number
+     * @param email User's email address
+     * @param password User's password
+     * @param isAdmin Flag indicating administrative privileges
+     */
     public User(String id, String fname, String lname, String phone, String email, String password, Boolean isAdmin) {
         this.id = id;
         this.fname = fname;
@@ -23,6 +45,11 @@ public class User implements Serializable {
         this.isAdmin = isAdmin;
     }
     
+    /**
+     * Copy constructor for creating a new user from an existing one
+     * Copies all fields except password and admin status
+     * @param user The user to copy from
+     */
     public User(User user) {
         this.id = user.id;
         this.fname = user.fname;
@@ -31,8 +58,13 @@ public class User implements Serializable {
         this.email = user.email;
     }
 
+    /**
+     * Default constructor required for Firebase serialization
+     */
     public User() {
     }
+
+    // Getters and setters for all fields
 
     public String getId() {
         return id;
@@ -82,8 +114,12 @@ public class User implements Serializable {
         this.password = password;
     }
 
+    /**
+     * Gets the user's full name by combining first and last name
+     * @return The user's full name
+     */
     public String getFullName() {
-        return fname + " " + lname; // Return full name
+        return fname + " " + lname;
     }
 
     public Boolean getAdmin() {
@@ -94,14 +130,26 @@ public class User implements Serializable {
         isAdmin = admin;
     }
 
+    /**
+     * Gets the user's full name (alias for getFullName)
+     * @return The user's full name
+     */
     public String getName() {
         return fname + " " + lname;
     }
 
+    /**
+     * Placeholder method for setting name
+     * Currently not implemented as it would require splitting the name
+     */
     public void setName(String name) {
         // This method is not used in the current implementation
     }
 
+    /**
+     * Returns a string representation of the user
+     * @return String containing all user fields
+     */
     @Override
     public String toString() {
         return "User{" +

@@ -1,3 +1,8 @@
+// NotificationService.java
+// This service handles all notification-related functionality in the app
+// It manages payment reminders, payment status updates, and group notifications
+// Supports both local notifications and Firebase Cloud Messaging
+
 package com.example.yanivproject.services;
 
 import android.app.NotificationChannel;
@@ -28,18 +33,33 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+/**
+ * Service class for handling all notification-related functionality
+ * Manages both local notifications and Firebase Cloud Messaging
+ */
 public class NotificationService {
+    // Constants for notification channel and logging
     private static final String CHANNEL_ID = "payment_reminders";
     private static final String TAG = "NotificationService";
+    
+    // Context and database reference
     private final Context context;
     private final DatabaseReference databaseReference;
 
+    /**
+     * Constructor initializes the service and creates notification channel
+     * @param context Application context
+     */
     public NotificationService(Context context) {
         this.context = context;
         this.databaseReference = FirebaseDatabase.getInstance().getReference();
         createNotificationChannel();
     }
 
+    /**
+     * Creates the notification channel for Android O and above
+     * Required for showing notifications on modern Android versions
+     */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -54,9 +74,20 @@ public class NotificationService {
         }
     }
 
+    /**
+     * Sends payment reminders to all unpaid users in a group
+     * @param group The group containing unpaid users
+     */
     public void sendPaymentReminder(Group group) {
         if (group == null || group.getUserPayListAsList() == null) {
             Log.e(TAG, "Group or userPayList is null");
+            return;
+        }
+
+        // Check if we should send a reminder based on the last reminder date
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        if (!shouldSendReminder(group, currentDate)) {
+            Log.d(TAG, "Skipping reminder - too soon since last reminder");
             return;
         }
 
@@ -78,10 +109,15 @@ public class NotificationService {
         });
 
         // Update last reminder date
-        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         updateLastReminderDate(group.getGroupId(), currentDate);
     }
 
+    /**
+     * Checks if a reminder should be sent based on the last reminder date
+     * @param group The group to check
+     * @param currentDate Current date in yyyy-MM-dd format
+     * @return true if a reminder should be sent, false otherwise
+     */
     private boolean shouldSendReminder(Group group, String currentDate) {
         if (group.getLastReminderDate() == null) return true;
 
@@ -93,7 +129,8 @@ public class NotificationService {
             if (lastReminder != null && today != null) {
                 long diffInMillis = today.getTime() - lastReminder.getTime();
                 long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
-                return diffInDays >= group.getReminderInterval();
+                // Only send reminder if at least 1 day has passed since last reminder
+                return diffInDays >= 1;
             }
         } catch (Exception e) {
             Log.e(TAG, "Error calculating reminder interval", e);
@@ -101,6 +138,11 @@ public class NotificationService {
         return false;
     }
 
+    /**
+     * Creates a payment reminder notification for a specific user
+     * @param group The group containing the payment
+     * @param userPay The payment details
+     */
     private void createPaymentReminderNotification(Group group, UserPay userPay) {
         Intent intent = new Intent(context, GroupDetailsActivity.class);
         intent.putExtra("group", group);
@@ -129,6 +171,11 @@ public class NotificationService {
         }
     }
 
+    /**
+     * Updates the last reminder date for a group
+     * @param groupId The ID of the group
+     * @param currentDate Current date in yyyy-MM-dd format
+     */
     private void updateLastReminderDate(String groupId, String currentDate) {
         databaseReference.child("groups")
             .child(groupId)
@@ -137,18 +184,27 @@ public class NotificationService {
             .addOnFailureListener(e -> Log.e(TAG, "Error updating last reminder date", e));
     }
 
+    /**
+     * Sends a notification when a payment is completed
+     * @param group The group containing the payment
+     * @param userPay The completed payment details
+     */
     public void sendPaymentCompleteNotification(Group group, UserPay userPay) {
         String title = "תשלום אושר";
         String message = String.format("התשלום שלך בסך ₪%.2f בקבוצה %s אושר",
                 userPay.getAmount(),
                 group.getGroupName());
 
-        // Send notification only to the member who made the payment
         String memberId = userPay.getUser().getId();
         Log.d(TAG, "Sending payment complete notification to member: " + memberId);
         sendNotification(memberId, title, message);
     }
 
+    /**
+     * Sends a notification when a payment needs approval
+     * @param group The group containing the payment
+     * @param userPay The pending payment details
+     */
     public void sendPaymentPendingNotification(Group group, UserPay userPay) {
         String title = "בקשת אישור תשלום";
         String message = String.format("%s מבקש אישור לתשלום בסך ₪%.2f בקבוצה %s",
@@ -156,20 +212,25 @@ public class NotificationService {
                 userPay.getAmount(),
                 group.getGroupName());
 
-        // Send notification only to group creator
         String creatorId = group.getCreator().getId();
         Log.d(TAG, "Sending payment pending notification to creator: " + creatorId);
         sendNotification(creatorId, title, message);
     }
 
+    /**
+     * Sends a notification to a specific user
+     * @param userId The ID of the user to notify
+     * @param title The notification title
+     * @param message The notification message
+     */
     private void sendNotification(String userId, String title, String message) {
         Log.d(TAG, "Attempting to send notification to user: " + userId);
         
-        // Create a notification in the database
-        HashMap<String, String> notification = new HashMap<>();
+        HashMap<String, Object> notification = new HashMap<>();
         notification.put("title", title);
         notification.put("message", message);
         notification.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        notification.put("seen", false);  // Add seen flag
 
         databaseReference.child("notifications")
             .child(userId)
@@ -177,7 +238,6 @@ public class NotificationService {
             .setValue(notification)
             .addOnSuccessListener(aVoid -> {
                 Log.d(TAG, "Notification sent successfully to user: " + userId);
-                // Only show local notification if this is the current user
                 String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 if (userId.equals(currentUserId)) {
                     showLocalNotification(title, message);
@@ -188,6 +248,11 @@ public class NotificationService {
             });
     }
 
+    /**
+     * Shows a local notification on the device
+     * @param title The notification title
+     * @param message The notification message
+     */
     public void showLocalNotification(String title, String message) {
         Intent intent = new Intent(context, GroupDetailsActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -203,24 +268,92 @@ public class NotificationService {
             .setSmallIcon(R.drawable.smartsplitlogo)
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true);
 
-        NotificationManager notificationManager = 
-            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        
-        if (notificationManager != null) {
-            notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+        try {
+            NotificationManagerCompat.from(context).notify(
+                (int) System.currentTimeMillis(),
+                builder.build()
+            );
+        } catch (SecurityException e) {
+            Log.e(TAG, "Error showing notification", e);
         }
     }
 
+    /**
+     * Sends a notification when a group is deleted
+     * @param group The group that was deleted
+     * @param user The user who deleted the group
+     */
     public void sendGroupDeletedNotification(Group group, User user) {
         String title = "קבוצה נמחקה";
-        String message = String.format("הקבוצה '%s' נמחקה על ידי מנהל הקבוצה", group.getGroupName());
+        String message = String.format("הקבוצה %s נמחקה על ידי %s",
+                group.getGroupName(),
+                user.getName());
 
-        // Send notification to the specified user (who is not the creator)
-        Log.d(TAG, "Sending group deleted notification to user: " + user.getId());
-        sendNotification(user.getId(), title, message);
+        // Notify all group members except the creator
+        group.getUserPayListAsList().stream()
+            .filter(userPay -> !userPay.getUser().getId().equals(user.getId()))
+            .forEach(userPay -> sendNotification(userPay.getUser().getId(), title, message));
+    }
+
+    /**
+     * Sends a notification when a payment deadline is approaching
+     * @param group The group with the approaching deadline
+     * @param daysUntilDeadline Number of days until the deadline
+     */
+    public void sendDeadlineApproachingNotification(Group group, int daysUntilDeadline) {
+        String title = "דדליין מתקרב";
+        String message = String.format("נשארו %d ימים עד לתשלום בקבוצה %s",
+                daysUntilDeadline,
+                group.getGroupName());
+
+        // Notify all unpaid users
+        group.getUserPayListAsList().stream()
+            .filter(userPay -> !userPay.isPaid())
+            .forEach(userPay -> sendNotification(userPay.getUser().getId(), title, message));
+    }
+
+    /**
+     * Sends a notification when all payments in a group are completed
+     * @param group The group where all payments are completed
+     */
+    public void sendGroupPaidNotification(Group group) {
+        String title = "כל התשלומים הושלמו";
+        String message = String.format("כל התשלומים בקבוצה %s הושלמו בהצלחה",
+                group.getGroupName());
+
+        // Notify the group creator
+        sendNotification(group.getCreator().getId(), title, message);
+    }
+
+    /**
+     * Sends a payment reminder notification for a specific user
+     * @param group The group containing the payment
+     * @param userPay The payment that needs a reminder
+     */
+    public void sendPaymentReminderNotification(Group group, UserPay userPay) {
+        String title = "תזכורת לתשלום";
+        String message = String.format("לא לשכוח לשלם את החלק שלך בסך ₪%.2f בקבוצה %s",
+                userPay.getAmount(),
+                group.getGroupName());
+
+        sendNotification(userPay.getUser().getId(), title, message);
+    }
+
+    /**
+     * Marks a notification as seen
+     * @param userId The ID of the user
+     * @param notificationId The ID of the notification to mark as seen
+     */
+    public void markNotificationAsSeen(String userId, String notificationId) {
+        databaseReference.child("notifications")
+            .child(userId)
+            .child(notificationId)
+            .child("seen")
+            .setValue(true)
+            .addOnFailureListener(e -> Log.e(TAG, "Error marking notification as seen", e));
     }
 } 

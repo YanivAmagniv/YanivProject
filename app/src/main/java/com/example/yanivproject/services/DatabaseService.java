@@ -1,3 +1,8 @@
+// DatabaseService.java
+// This service handles all Firebase Realtime Database operations for the app
+// It provides methods for CRUD operations on users and groups
+// Implements the Singleton pattern to ensure a single instance throughout the app
+
 package com.example.yanivproject.services;
 
 import android.util.Log;
@@ -15,11 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-
-/// a service to interact with the Firebase Realtime Database.
-/// this class is a singleton, use getInstance() to get an instance of this class
-/// @see #getInstance()
-/// @see FirebaseDatabase
+/**
+ * Service class for handling Firebase Realtime Database operations
+ * This class implements the Singleton pattern to ensure a single instance
+ * throughout the application lifecycle
+ */
 public class DatabaseService {
 
     /// tag for logging
@@ -215,6 +220,60 @@ public class DatabaseService {
             });
 
             callback.onCompleted(users);
+        });
+    }
+
+    /**
+     * Get all users from the database
+     * @param callback Callback to handle the result
+     */
+    public void getAllUsers(@NotNull final DatabaseCallback<List<User>> callback) {
+        readData("Users").get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e(TAG, "Error getting users", task.getException());
+                callback.onFailed(task.getException());
+                return;
+            }
+            List<User> users = new ArrayList<>();
+            task.getResult().getChildren().forEach(dataSnapshot -> {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    users.add(user);
+                }
+            });
+            callback.onCompleted(users);
+        });
+    }
+
+    /**
+     * Create a new group in the database
+     * @param group The group to create
+     * @param callback Callback to handle the result
+     */
+    public void createGroup(@NotNull final Group group, @Nullable final DatabaseCallback<Void> callback) {
+        String groupId = generateGroupId();
+        group.setGroupId(groupId);
+        writeData("groups/" + groupId, group, callback);
+    }
+
+    /**
+     * Gets a user by their ID
+     * @param userId The ID of the user to retrieve
+     * @param callback Callback to handle the result
+     */
+    public void getUserById(@NotNull final String userId, @NotNull final DatabaseCallback<User> callback) {
+        readData("Users/" + userId).get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Log.e(TAG, "Error getting user data", task.getException());
+                callback.onFailed(task.getException());
+                return;
+            }
+            User user = task.getResult().getValue(User.class);
+            if (user != null) {
+                callback.onCompleted(user);
+            } else {
+                callback.onFailed(new Exception("User not found"));
+            }
         });
     }
 
