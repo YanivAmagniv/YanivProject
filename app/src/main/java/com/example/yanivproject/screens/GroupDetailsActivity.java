@@ -214,6 +214,12 @@ public class GroupDetailsActivity extends NavActivity {
      * @param userPay The payment to mark as paid
      */
     private void markPaymentAsPaid(UserPay userPay) {
+        // Don't allow payments for closed groups
+        if (group.getStatus().equals("CLOSED")) {
+            Toast.makeText(this, "This group is closed. No more payments can be made.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         boolean isCreator = group.getCreator().getId().equals(currentUserId);
         List<UserPay> userPayList = group.getUserPayListAsList();
         
@@ -298,14 +304,32 @@ public class GroupDetailsActivity extends NavActivity {
     private void checkAndUpdateGroupStatus() {
         boolean allPaid = group.getUserPayListAsList().stream().allMatch(UserPay::isPaid);
         if (allPaid) {
-            group.setStatus("Paid");
-            groupRef.child("status").setValue("Paid")
+            group.setStatus("CLOSED");
+            groupRef.child("status").setValue("CLOSED")
                 .addOnSuccessListener(aVoid -> {
                     // Send notification to all members
                     notificationService.sendGroupPaidNotification(group);
                     
                     // Update UI
-                    groupStatusText.setText("Paid");
+                    groupStatusText.setText("CLOSED");
+                    
+                    // Disable payment marking button
+                    Button markPaidButton = findViewById(R.id.btnMarkCurrentUserPaid);
+                    if (markPaidButton != null) {
+                        markPaidButton.setEnabled(false);
+                        markPaidButton.setVisibility(View.GONE);
+                    }
+                    
+                    // Disable approval buttons
+                    LinearLayout participantsContainer = findViewById(R.id.participants_container);
+                    for (int i = 0; i < participantsContainer.getChildCount(); i++) {
+                        View participantView = participantsContainer.getChildAt(i);
+                        Button approveButton = participantView.findViewById(R.id.btn_approve_payment);
+                        if (approveButton != null) {
+                            approveButton.setEnabled(false);
+                            approveButton.setVisibility(View.GONE);
+                        }
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("GroupDetailsActivity", "Failed to update group status", e);
@@ -433,6 +457,12 @@ public class GroupDetailsActivity extends NavActivity {
      * @param userPay The payment to approve
      */
     private void setupApprovalButton(Button approveButton, UserPay userPay) {
+        // Don't show approval button for closed groups
+        if (group.getStatus().equals("CLOSED")) {
+            approveButton.setVisibility(View.GONE);
+            return;
+        }
+
         if (userPay.getPaymentStatus() == UserPay.PaymentStatus.PENDING_APPROVAL) {
             approveButton.setVisibility(View.VISIBLE);
             approveButton.setOnClickListener(v -> {
@@ -530,23 +560,6 @@ public class GroupDetailsActivity extends NavActivity {
     }
 
     /**
-     * Sends payment reminders to all unpaid participants
-     * Only available to group creator
-     */
-    private void sendPaymentReminders() {
-        if (group.getCreator().getId().equals(currentUserId)) {
-            for (UserPay userPay : group.getUserPayListAsList()) {
-                if (!userPay.isPaid()) {
-                    notificationService.sendPaymentReminderNotification(group, userPay);
-                }
-            }
-            Toast.makeText(this, "Payment reminders sent", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Only the group creator can send reminders", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
      * Creates the options menu
      * @param menu The menu to create
      * @return true if menu was created successfully
@@ -565,10 +578,31 @@ public class GroupDetailsActivity extends NavActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_send_reminders) {
+            if (group.getStatus().equals("CLOSED")) {
+                Toast.makeText(this, "This group is closed. Cannot send reminders.", Toast.LENGTH_SHORT).show();
+                return true;
+            }
             sendPaymentReminders();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Sends payment reminders to all unpaid participants
+     * Only available to group creator
+     */
+    private void sendPaymentReminders() {
+        if (group.getCreator().getId().equals(currentUserId)) {
+            for (UserPay userPay : group.getUserPayListAsList()) {
+                if (!userPay.isPaid()) {
+                    notificationService.sendPaymentReminderNotification(group, userPay);
+                }
+            }
+            Toast.makeText(this, "Payment reminders sent", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Only the group creator can send reminders", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

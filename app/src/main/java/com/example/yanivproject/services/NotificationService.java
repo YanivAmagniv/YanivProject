@@ -335,6 +335,11 @@ public class NotificationService {
      * @param userPay The payment that needs a reminder
      */
     public void sendPaymentReminderNotification(Group group, UserPay userPay) {
+        // Don't send reminders for closed groups
+        if (group.getStatus().equals("CLOSED")) {
+            return;
+        }
+
         String title = "תזכורת לתשלום";
         String message = String.format("לא לשכוח לשלם את החלק שלך בסך ₪%.2f בקבוצה %s",
                 userPay.getAmount(),

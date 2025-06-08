@@ -319,15 +319,22 @@ public class UserAmountAdapter extends RecyclerView.Adapter<UserAmountAdapter.Vi
     public void setSplitMethod(String method) {
         this.splitMethod = method;
         
-        // If switching to equal split, automatically calculate equal amounts
+        // First reset all amounts to zero
+        for (User user : users) {
+            userAmounts.put(user.getId(), 0.0);
+        }
+        
         if (method.equals("חלוקה שווה") && !users.isEmpty()) {
+            // Equal split - divide total by number of users
             double equalAmount = totalAmount / users.size();
             for (User user : users) {
                 userAmounts.put(user.getId(), equalAmount);
             }
-            notifyDataSetChanged();
-            updateTotalAndNotifyListener();
         }
+        // Both percentage and custom amounts will stay at zero
+        
+        notifyDataSetChanged();
+        updateTotalAndNotifyListener();
     }
 
     /**
