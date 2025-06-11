@@ -18,14 +18,12 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.User;
-import com.example.yanivproject.services.NotificationService;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,7 +34,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.ChildEventListener;
 
-public class HomePage extends NavActivity implements NavigationView.OnNavigationItemSelectedListener, ChildEventListener {
+public class HomePage extends NavActivity implements NavigationView.OnNavigationItemSelectedListener{
     // UI Components
     private Button btnAdminPage;
     private TextView welcomeText;
@@ -44,7 +42,6 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
     private ActionBarDrawerToggle toggle;
     private DrawerLayout drawerLayout;
     private String currentUserId;
-    private NotificationService notificationService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,11 +51,9 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         setContentView(R.layout.activity_home_page);
         setupNavigationDrawer();
 
-        // Initialize notification service for handling push notifications
-        notificationService = new NotificationService(this);
 
-        // Set up real-time notification listener
-        setupNotificationListener();
+
+
 
         // Set up the Toolbar for the app
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -178,61 +173,12 @@ public class HomePage extends NavActivity implements NavigationView.OnNavigation
         Log.d("AdminCheck", "Current UID: " + currentUser.getUid());
     }
 
-    // Set up real-time notification listener
-    private void setupNotificationListener() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications")
-                .child(currentUser.getUid());
-            
-            notificationsRef.addChildEventListener(this);
-        }
-    }
 
-    // Handle new notifications
-    @Override
-    public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
-        if (snapshot.exists()) {
-            Boolean seen = snapshot.child("seen").getValue(Boolean.class);
-            if (seen == null || !seen) {  // Only show if not seen
-                String title = snapshot.child("title").getValue(String.class);
-                String message = snapshot.child("message").getValue(String.class);
-                if (title != null && message != null) {
-                    notificationService.showLocalNotification(title, message);
-                    // Mark notification as seen
-                    notificationService.markNotificationAsSeen(currentUserId, snapshot.getKey());
-                }
-            }
-        }
-    }
 
-    // Required interface methods for ChildEventListener
-    @Override
-    public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {}
 
-    @Override
-    public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
 
-    @Override
-    public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {}
 
-    @Override
-    public void onCancelled(@NonNull DatabaseError error) {
-        Log.e("HomePage", "Database error: " + error.getMessage());
-    }
 
-    // Clean up resources when activity is destroyed
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Remove the notification listener
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications")
-                .child(currentUser.getUid());
-            notificationsRef.removeEventListener(this);
-        }
-    }
 
     // Handle navigation drawer item selection
     @Override

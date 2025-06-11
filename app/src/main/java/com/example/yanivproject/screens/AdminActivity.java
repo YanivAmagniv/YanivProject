@@ -1,7 +1,18 @@
+// AdminActivity.java
+// This activity provides administrative functionality for managing users
+// Features:
+// - Display list of all users in the system
+// - Real-time search functionality
+// - Admin-only access control
+// - User management capabilities
+
 package com.example.yanivproject.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -19,14 +30,27 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Activity for administrative user management
+ * Provides functionality to view and manage all users in the system
+ * Implements real-time search and filtering capabilities
+ */
 public class AdminActivity extends NavActivity {
 
-    private ListView userListView;
-    private List<User> userList;
-    private UserAdapter adapter;
-    private DatabaseReference usersRef;
-    private FirebaseAuth mAuth;
+    // UI Components
+    private ListView userListView;        // Displays the list of users
+    private List<User> userList;          // Stores all users
+    private List<User> filteredUserList;  // Stores filtered users for search
+    private UserAdapter adapter;          // Adapter for the user list
+    private DatabaseReference usersRef;   // Firebase reference to users
+    private FirebaseAuth mAuth;           // Firebase authentication instance
+    private EditText searchBar;           // Search input field
 
+    /**
+     * Called when the activity is first created
+     * Initializes UI components and checks admin access
+     * @param savedInstanceState Bundle containing the activity's previously saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,9 +86,14 @@ public class AdminActivity extends NavActivity {
 
             // Initialize views and Firebase reference
             userListView = findViewById(R.id.userListView);
+            searchBar = findViewById(R.id.etSearch);
             userList = new ArrayList<>();
-            adapter = new UserAdapter(this, R.layout.user_item, userList);
+            filteredUserList = new ArrayList<>();
+            adapter = new UserAdapter(this, R.layout.user_item, filteredUserList);
             userListView.setAdapter(adapter);
+
+            // Setup search functionality
+            setupSearchBar();
 
             usersRef = FirebaseDatabase.getInstance().getReference("Users");
 
@@ -79,6 +108,52 @@ public class AdminActivity extends NavActivity {
         });
     }
 
+    /**
+     * Sets up the search bar functionality
+     * Implements real-time filtering as user types
+     */
+    private void setupSearchBar() {
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterUsers(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    /**
+     * Filters the user list based on search query
+     * Matches against user's first name, last name, and email
+     * @param query The search query string
+     */
+    private void filterUsers(String query) {
+        filteredUserList.clear();
+        if (query.isEmpty()) {
+            filteredUserList.addAll(userList);
+        } else {
+            query = query.toLowerCase();
+            for (User user : userList) {
+                if (user.getFname() != null && user.getFname().toLowerCase().contains(query) ||
+                    user.getLname() != null && user.getLname().toLowerCase().contains(query) ||
+                    user.getEmail() != null && user.getEmail().toLowerCase().contains(query)) {
+                    filteredUserList.add(user);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Fetches all users from Firebase Database
+     * Updates the UI with the fetched users
+     * Handles success and failure cases
+     */
     private void fetchAllUsers() {
         usersRef.get().addOnSuccessListener(snapshot -> {
             userList.clear();
@@ -88,6 +163,9 @@ public class AdminActivity extends NavActivity {
                     userList.add(user);
                 }
             }
+            // Initialize filtered list with all users
+            filteredUserList.clear();
+            filteredUserList.addAll(userList);
             adapter.notifyDataSetChanged();
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Failed to fetch users", Toast.LENGTH_SHORT).show();

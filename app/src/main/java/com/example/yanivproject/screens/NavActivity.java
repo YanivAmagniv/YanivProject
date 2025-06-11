@@ -1,3 +1,11 @@
+// NavActivity.java
+// This is a base activity that provides navigation drawer functionality
+// Features:
+// - Common navigation drawer setup
+// - Admin menu item visibility control
+// - Navigation item selection handling
+// - Drawer state management
+
 package com.example.yanivproject.screens;
 
 import android.content.Intent;
@@ -20,13 +28,21 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+/**
+ * Base activity that implements navigation drawer functionality
+ * Provides common navigation features for all activities that extend it
+ * Manages drawer state and navigation item selection
+ */
 public abstract class NavActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     // Protected variables that child activities can access
-    protected DrawerLayout drawerLayout;
-    protected ActionBarDrawerToggle toggle;
-    protected NavigationView navigationView;
+    protected DrawerLayout drawerLayout;      // The navigation drawer layout
+    protected ActionBarDrawerToggle toggle;   // Toggle for opening/closing drawer
+    protected NavigationView navigationView;  // The navigation view containing menu items
 
-    // Method to set up the navigation drawer - called by child activities
+    /**
+     * Sets up the navigation drawer with toolbar and toggle
+     * Called by child activities to initialize navigation
+     */
     protected void setupNavigationDrawer() {
         // Set up the Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -65,113 +81,63 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
         if (currentUser != null) {
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("Users").child(currentUser.getUid());
             userRef.get().addOnSuccessListener(snapshot -> {
-                if (snapshot.exists()) {
-                    Boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
-                    Menu menu = navigationView.getMenu();
-                    MenuItem adminItem = menu.findItem(R.id.nav_admin_page);
-                    if (adminItem != null) {
-                        adminItem.setVisible(isAdmin != null && isAdmin);
-                    }
+                User user = snapshot.getValue(User.class);
+                if (user != null && !user.getAdmin()) {
+                    // Hide admin menu item for non-admin users
+                    navigationView.getMenu().findItem(R.id.nav_admin).setVisible(false);
                 }
             });
         }
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        if (toggle != null) {
-            toggle.syncState();
-        }
-    }
-
+    /**
+     * Handles configuration changes to maintain drawer state
+     * @param newConfig The new configuration
+     */
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (toggle != null) {
-            toggle.onConfigurationChanged(newConfig);
-        }
+        toggle.onConfigurationChanged(newConfig);
     }
 
-    // Handle navigation item clicks
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-
-        // Handle logout separately since it doesn't have a destination activity
-        if (id == R.id.nav_logout) {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, Login.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        }
-
-        // Get the destination activity
-        Class<?> destinationActivity = getDestinationActivity(id);
-        
-        // If we have a valid destination activity, check if we're already there
-        if (destinationActivity != null) {
-            if (this.getClass().getSimpleName().equals(destinationActivity.getSimpleName())) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                return true;
-            }
-        }
-
-        // Start the appropriate activity based on which menu item was clicked
-        if (id == R.id.nav_home) {
-            Intent intent = new Intent(this, HomePage.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        } else if (id == R.id.nav_new_group) {
-            startActivity(new Intent(this, AddNewEvent.class));
-        } else if (id == R.id.nav_existent_groups) {
-            startActivity(new Intent(this, ExistentGroup.class));
-        } else if (id == R.id.nav_user_details) {
-            startActivity(new Intent(this, UserDetails.class));
-        } else if (id == R.id.nav_about) {
-            startActivity(new Intent(this, AboutActivity.class));
-        } else if (id == R.id.nav_admin_page) {
-            startActivity(new Intent(this, AdminActivity.class));
-        }
-
-        // Close the drawer after handling the click
-        drawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    // Helper method to get the destination activity class
-    private Class<?> getDestinationActivity(int id) {
-        if (id == R.id.nav_home) return HomePage.class;
-        else if (id == R.id.nav_new_group) return AddNewEvent.class;
-        else if (id == R.id.nav_existent_groups) return ExistentGroup.class;
-        else if (id == R.id.nav_user_details) return UserDetails.class;
-        else if (id == R.id.nav_about) return AboutActivity.class;
-        else if (id == R.id.nav_admin_page) return AdminActivity.class;
-        return null;
-    }
-
-    // Handle the hamburger menu click
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (toggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    // Handle back button press
+    /**
+     * Handles back button press
+     * Closes drawer if open, otherwise performs normal back action
+     */
     @Override
     public void onBackPressed() {
-        // If drawer is open, close it
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-            // Otherwise, do normal back button behavior
             super.onBackPressed();
         }
+    }
+
+    /**
+     * Handles navigation item selection
+     * @param item The selected menu item
+     * @return true if the item was handled
+     */
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here
+        int id = item.getItemId();
+
+        if (id == R.id.nav_home) {
+            startActivity(new Intent(this, HomePage.class));
+        } else if (id == R.id.nav_groups) {
+            startActivity(new Intent(this, ExistentGroup.class));
+        } else if (id == R.id.nav_profile) {
+            startActivity(new Intent(this, UserDetails.class));
+        } else if (id == R.id.nav_admin) {
+            startActivity(new Intent(this, AdminActivity.class));
+        } else if (id == R.id.nav_logout) {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        }
+
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

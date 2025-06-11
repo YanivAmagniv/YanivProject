@@ -26,6 +26,7 @@ import com.example.yanivproject.R;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.services.AuthenticationService;
 import com.example.yanivproject.services.DatabaseService;
+import com.example.yanivproject.utils.SharedPreferencesUtil;
 
 /**
  * Activity for handling new user registration
@@ -166,7 +167,7 @@ public class Register extends AppCompatActivity {
                             editor.putString("email", email);
                             editor.putString("password", pass);
                             editor.commit();
-                            
+                            SharedPreferencesUtil.saveUser(Register.this,newUser);
                             // Navigate to main activity
                             Intent goLog = new Intent(Register.this, MainActivity.class);
                             startActivity(goLog);

@@ -7,31 +7,25 @@
 package com.example.yanivproject.screens;
 
 import android.annotation.SuppressLint;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.Locale;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.yanivproject.R;
 import com.example.yanivproject.models.Group;
 import com.example.yanivproject.models.User;
 import com.example.yanivproject.models.UserPay;
-import com.example.yanivproject.services.NotificationService;
 import com.example.yanivproject.views.DeadlineCountdownView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,7 +34,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.ChildEventListener;
 
 import java.util.List;
 
@@ -70,7 +63,6 @@ public class GroupDetailsActivity extends NavActivity {
     private String currentUserId;          // ID of the currently logged-in user
     private int numberOfParticipants;      // Number of participants in the group
     private double userOwedAmount;         // Amount owed by current user
-    private NotificationService notificationService;  // Service for handling notifications
     private DeadlineCountdownView deadlineCountdownView;  // Custom view for deadline countdown
     private ValueEventListener valueEventListener;
 
@@ -86,8 +78,7 @@ public class GroupDetailsActivity extends NavActivity {
         setContentView(R.layout.activity_group_details);
         setupNavigationDrawer();
 
-        // Initialize notification service for payment notifications
-        notificationService = new NotificationService(this);
+
 
         // Initialize all UI components
         initializeViews();
@@ -254,8 +245,7 @@ public class GroupDetailsActivity extends NavActivity {
         userPayList.set(index, currentUserPay);
         groupRef.child("userPayList").setValue(userPayList)
             .addOnSuccessListener(aVoid -> {
-                // Send notification to member
-                notificationService.sendPaymentCompleteNotification(group, currentUserPay);
+
                 
                 // Check if all payments are complete
                 checkAndUpdateGroupStatus();
@@ -287,8 +277,7 @@ public class GroupDetailsActivity extends NavActivity {
             userPayList.set(index, currentUserPay);
             groupRef.child("userPayList").setValue(userPayList)
                 .addOnSuccessListener(aVoid -> {
-                    // Send notification to creator
-                    notificationService.sendPaymentPendingNotification(group, currentUserPay);
+
                 })
                 .addOnFailureListener(e -> {
                     Log.e("GroupDetailsActivity", "Error updating payment status", e);
@@ -307,8 +296,7 @@ public class GroupDetailsActivity extends NavActivity {
             group.setStatus("CLOSED");
             groupRef.child("status").setValue("CLOSED")
                 .addOnSuccessListener(aVoid -> {
-                    // Send notification to all members
-                    notificationService.sendGroupPaidNotification(group);
+
                     
                     // Update UI
                     groupStatusText.setText("CLOSED");
@@ -361,8 +349,7 @@ public class GroupDetailsActivity extends NavActivity {
             user.setEmail(currentUser.getEmail());
             user.setFname(currentUser.getDisplayName());
             
-            // Send notification before deleting
-            notificationService.sendGroupDeletedNotification(group, user);
+
             
             // Delete the group from Firebase
             groupRef.removeValue()
@@ -482,8 +469,7 @@ public class GroupDetailsActivity extends NavActivity {
                 
                 groupRef.child("userPayList").setValue(userPayList)
                     .addOnSuccessListener(aVoid -> {
-                        // Send notification to member
-                        notificationService.sendPaymentCompleteNotification(group, userPay);
+
                         
                         // Check if all payments are complete
                         checkAndUpdateGroupStatus();
@@ -559,51 +545,11 @@ public class GroupDetailsActivity extends NavActivity {
         }
     }
 
-    /**
-     * Creates the options menu
-     * @param menu The menu to create
-     * @return true if menu was created successfully
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.group_details_menu, menu);
-        return true;
-    }
 
-    /**
-     * Handles menu item selection
-     * @param item The selected menu item
-     * @return true if item was handled successfully
-     */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_send_reminders) {
-            if (group.getStatus().equals("CLOSED")) {
-                Toast.makeText(this, "This group is closed. Cannot send reminders.", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            sendPaymentReminders();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
-    /**
-     * Sends payment reminders to all unpaid participants
-     * Only available to group creator
-     */
-    private void sendPaymentReminders() {
-        if (group.getCreator().getId().equals(currentUserId)) {
-            for (UserPay userPay : group.getUserPayListAsList()) {
-                if (!userPay.isPaid()) {
-                    notificationService.sendPaymentReminderNotification(group, userPay);
-                }
-            }
-            Toast.makeText(this, "Payment reminders sent", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Only the group creator can send reminders", Toast.LENGTH_SHORT).show();
-        }
-    }
+
+
+
 
     /**
      * Sets up the payment marking functionality
@@ -612,15 +558,21 @@ public class GroupDetailsActivity extends NavActivity {
     private void setupPaymentMarking() {
         Button markPaidButton = findViewById(R.id.btnMarkCurrentUserPaid);
         if (markPaidButton != null) {
-            markPaidButton.setOnClickListener(v -> {
-                List<UserPay> userPayList = group.getUserPayListAsList();
-                for (UserPay userPay : userPayList) {
-                    if (userPay.getUser().getId().equals(currentUserId)) {
-                        markPaymentAsPaid(userPay);
-                        break;
+            // Only show mark payment button to non-creator members
+            if (!group.getCreator().getId().equals(currentUserId)) {
+                markPaidButton.setVisibility(View.VISIBLE);
+                markPaidButton.setOnClickListener(v -> {
+                    List<UserPay> userPayList = group.getUserPayListAsList();
+                    for (UserPay userPay : userPayList) {
+                        if (userPay.getUser().getId().equals(currentUserId)) {
+                            markPaymentAsPaid(userPay);
+                            break;
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                markPaidButton.setVisibility(View.GONE);
+            }
         }
     }
 
