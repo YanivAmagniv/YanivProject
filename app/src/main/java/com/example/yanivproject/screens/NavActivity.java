@@ -21,6 +21,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.yanivproject.R;
+import com.example.yanivproject.models.User;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -84,7 +85,7 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
                 User user = snapshot.getValue(User.class);
                 if (user != null && !user.getAdmin()) {
                     // Hide admin menu item for non-admin users
-                    navigationView.getMenu().findItem(R.id.nav_admin).setVisible(false);
+                    navigationView.getMenu().findItem(R.id.nav_admin_page).setVisible(false);
                 }
             });
         }
@@ -125,11 +126,11 @@ public abstract class NavActivity extends AppCompatActivity implements Navigatio
 
         if (id == R.id.nav_home) {
             startActivity(new Intent(this, HomePage.class));
-        } else if (id == R.id.nav_groups) {
+        } else if (id == R.id.nav_existent_groups) {
             startActivity(new Intent(this, ExistentGroup.class));
-        } else if (id == R.id.nav_profile) {
+        } else if (id == R.id.nav_user_details) {
             startActivity(new Intent(this, UserDetails.class));
-        } else if (id == R.id.nav_admin) {
+        } else if (id == R.id.nav_admin_page) {
             startActivity(new Intent(this, AdminActivity.class));
         } else if (id == R.id.nav_logout) {
             FirebaseAuth.getInstance().signOut();
