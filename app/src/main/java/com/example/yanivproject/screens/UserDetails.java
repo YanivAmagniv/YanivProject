@@ -128,6 +128,9 @@ public class UserDetails extends NavActivity {
 
     // Change user password securely
     private void changeUserPassword() {
+
+        etCurrentPassword.setVisibility(View.VISIBLE);
+        etNewPassword.setVisibility(View.VISIBLE);
         String currentPassword = etCurrentPassword.getText().toString().trim();
         String newPassword = etNewPassword.getText().toString().trim();
 
